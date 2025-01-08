@@ -78,9 +78,8 @@ class BarrVerb : public Plugin {
     uint16_t prog_offset = 0;
 
     int16_t *ram;
-    float *lowpass = 0;
-
-    uint8_t program = 0;
+    float *lowpass;
+    uint8_t program;
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BarrVerb);
 };
