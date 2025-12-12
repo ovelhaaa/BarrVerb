@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <driver/i2s.h>
 #include "BarrVerb.h"
+#include <math.h>
 
 // I2S Configuration
 #define I2S_NUM         I2S_NUM_0
@@ -8,8 +9,6 @@
 #define I2S_BUFF_SIZE   128  // Frames per buffer
 
 // Generic I2S Pins (suitable for PCM5102 or generic DAC)
-// Change these for specific board if needed.
-// Lolin32 Lite usually has no specific I2S pins, but these are common defaults.
 #define I2S_BCLK_PIN    26
 #define I2S_LRCK_PIN    25
 #define I2S_DOUT_PIN    22
@@ -19,18 +18,61 @@ BarrVerb reverb;
 int16_t inputBuffer[I2S_BUFF_SIZE * 2];
 int16_t outputBuffer[I2S_BUFF_SIZE * 2];
 
-// Signal Generator State
-enum SourceType {
-    SRC_SILENCE,
-    SRC_IMPULSE,
-    SRC_SAWTOOTH,
-    SRC_SINE
+enum WaveformType {
+    SINE,
+    SAWTOOTH,
+    TRIANGLE,
+    SQUARE
 };
 
-SourceType currentSource = SRC_IMPULSE;
-uint32_t phase = 0;
-bool impulseTriggered = false;
-uint32_t impulseTimer = 0;
+WaveformType currentWaveform = SINE;
+
+class MelodyGen {
+private:
+    float phase;
+    float frequency;
+    int noteIndex;
+    int timer;
+    const float notes[16] = { 130.81, 164.81, 196.00, 246.94, 261.63, 329.63, 392.00, 493.88, 523.25, 392.00, 329.63, 261.63, 246.94, 196.00, 164.81, 130.81 };
+
+public:
+    MelodyGen() {
+        phase = 0;
+        frequency = 440.0;
+        noteIndex = 0;
+        timer = 0;
+    }
+
+    float next() {
+        if (++timer > 12000) {
+            timer = 0;
+            noteIndex = esp_random() % 16;
+            frequency = notes[noteIndex];
+        }
+
+        phase += (2.0f * M_PI * frequency) / I2S_SAMPLE_RATE;
+        if (phase >= 2.0f * M_PI) phase -= 2.0f * M_PI;
+
+        float out = 0.0f;
+        switch(currentWaveform) {
+            case SINE:
+                out = sinf(phase);
+                break;
+            case SAWTOOTH:
+                out = ((phase / M_PI) - 1.0f) * 0.4f;
+                break;
+            case TRIANGLE:
+                out = 2.0f * fabsf(phase / M_PI - 1.0f) - 1.0f;
+                break;
+            case SQUARE:
+                out = (phase < M_PI) ? 1.0f : -1.0f;
+                break;
+        }
+        return out * 0.5f;
+    }
+};
+
+MelodyGen melodyGen;
 
 void setupI2S() {
     i2s_config_t i2s_config = {
@@ -61,32 +103,8 @@ void setupI2S() {
 
 void generateSignal(int16_t *buffer, uint32_t frames) {
     for (uint32_t i = 0; i < frames; i++) {
-        int16_t sample = 0;
-
-        switch (currentSource) {
-            case SRC_SILENCE:
-                sample = 0;
-                break;
-            case SRC_IMPULSE:
-                // Trigger impulse every ~1 sec (44100 samples)
-                if (impulseTimer == 0) {
-                    sample = 32000;
-                    impulseTimer = 44100;
-                } else {
-                    sample = 0;
-                    impulseTimer--;
-                }
-                break;
-            case SRC_SAWTOOTH:
-                // Simple saw
-                sample = (int16_t)(phase & 0xFFFF) - 32768;
-                phase += 200; // Pitch control
-                break;
-            case SRC_SINE:
-                 sample = (int16_t)(sin(phase * 0.01) * 30000);
-                 phase++;
-                 break;
-        }
+        float sampleFloat = melodyGen.next();
+        int16_t sample = (int16_t)(sampleFloat * 32000.0f);
 
         // Write to stereo buffer
         buffer[i * 2] = sample;
@@ -103,9 +121,27 @@ void setup() {
     reverb.setSampleRate(I2S_SAMPLE_RATE);
     reverb.setProgram(0); // Start with first program
 
-    Serial.println("Program: 0");
-    Serial.println(reverb.getProgramName(0));
+    Serial.println("Type 'list' to see current parameters.");
 }
+
+String serialBuffer = "";
+
+void processCommand(String command) {
+    command.trim();
+    if (command == "list") {
+        Serial.printf("Program: %d - %s\n", 0 /* we need to track program index */, reverb.getProgramName(0)); // Wait, I need to track program globally
+        Serial.print("Waveform: ");
+        switch (currentWaveform) {
+            case SINE: Serial.println("SINE"); break;
+            case SAWTOOTH: Serial.println("SAWTOOTH"); break;
+            case TRIANGLE: Serial.println("TRIANGLE"); break;
+            case SQUARE: Serial.println("SQUARE"); break;
+        }
+    }
+}
+
+// Track program index globally
+int currentProgramIndex = 0;
 
 void loop() {
     size_t bytes_written;
@@ -119,27 +155,55 @@ void loop() {
     // 3. Output to I2S
     i2s_write(I2S_NUM, outputBuffer, sizeof(outputBuffer), &bytes_written, portMAX_DELAY);
 
-    // Simple Serial control to change programs
-    if (Serial.available()) {
+    // Serial control
+    while (Serial.available()) {
         char c = Serial.read();
-        static int prog = 0;
-        static int src = 1;
 
+        // Handle single-char commands immediately if not building a command string
+        // But the requirement asks for "list" command.
+        // Let's support both single chars (+, -, s) and line-buffered commands.
+
+        if (c == '\n' || c == '\r') {
+            if (serialBuffer.length() > 0) {
+                if (serialBuffer == "list") {
+                     Serial.printf("Program: %d - %s\n", currentProgramIndex, reverb.getProgramName(currentProgramIndex));
+                     Serial.print("Waveform: ");
+                     switch (currentWaveform) {
+                         case SINE: Serial.println("SINE"); break;
+                         case SAWTOOTH: Serial.println("SAWTOOTH"); break;
+                         case TRIANGLE: Serial.println("TRIANGLE"); break;
+                         case SQUARE: Serial.println("SQUARE"); break;
+                     }
+                }
+                serialBuffer = "";
+            }
+        } else {
+            serialBuffer += c;
+        }
+
+        // Keep direct control for compatibility or ease
         if (c == '+') {
-            prog++;
-            if (prog > 63) prog = 0;
-            reverb.setProgram(prog);
-            Serial.printf("Program: %d - %s\n", prog, reverb.getProgramName(prog));
+            currentProgramIndex++;
+            if (currentProgramIndex > 63) currentProgramIndex = 0;
+            reverb.setProgram(currentProgramIndex);
+            Serial.printf("Program: %d - %s\n", currentProgramIndex, reverb.getProgramName(currentProgramIndex));
         } else if (c == '-') {
-            prog--;
-            if (prog < 0) prog = 63;
-            reverb.setProgram(prog);
-            Serial.printf("Program: %d - %s\n", prog, reverb.getProgramName(prog));
+            currentProgramIndex--;
+            if (currentProgramIndex < 0) currentProgramIndex = 63;
+            reverb.setProgram(currentProgramIndex);
+            Serial.printf("Program: %d - %s\n", currentProgramIndex, reverb.getProgramName(currentProgramIndex));
         } else if (c == 's') {
-            src++;
-            if (src > 3) src = 0;
-            currentSource = (SourceType)src;
-            Serial.printf("Source changed to %d\n", src);
+            int wf = (int)currentWaveform;
+            wf++;
+            if (wf > 3) wf = 0;
+            currentWaveform = (WaveformType)wf;
+            Serial.print("Waveform changed to ");
+            switch (currentWaveform) {
+                case SINE: Serial.println("SINE"); break;
+                case SAWTOOTH: Serial.println("SAWTOOTH"); break;
+                case TRIANGLE: Serial.println("TRIANGLE"); break;
+                case SQUARE: Serial.println("SQUARE"); break;
+            }
         }
     }
 }
