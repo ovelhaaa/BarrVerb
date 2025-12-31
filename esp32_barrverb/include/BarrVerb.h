@@ -45,6 +45,10 @@ class BarrVerb {
     // User requested: "allocated as a global static array or dynamically with a check for success".
     int16_t *ram;
 
+    // RAM cache for the current program instructions (128 words)
+    // Accessing this in IRAM/RAM is faster than reading from Flash in a tight loop.
+    uint16_t currentProgram[128];
+
     // lowpass buffer for the block processing
     // Original used `new float[getBufferSize()]`.
     // I'll allocate a small fixed buffer or handle per-sample to avoid large allocation if possible.
