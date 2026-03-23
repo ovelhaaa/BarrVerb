@@ -8,11 +8,12 @@
 #define I2S_SAMPLE_RATE 44100
 #define I2S_BUFF_SIZE   128  // Frames per buffer
 
-// Generic I2S Pins (suitable for PCM5102 or generic DAC)
-#define I2S_BCLK_PIN    26
-#define I2S_LRCK_PIN    25
-#define I2S_DOUT_PIN    22
-#define I2S_DIN_PIN     35 // Not used in generator mode
+// Lolin32 Lite + PCM5102 I2S Pins
+// These are the pins confirmed for the Lolin32 Lite board
+#define I2S_BCLK_PIN    26  // Bit Clock
+#define I2S_LRCK_PIN    25  // Word Select / Left-Right Clock
+#define I2S_DOUT_PIN    22  // Data Out
+#define I2S_DIN_PIN     35  // Data In (Not used for DAC output, input-only pin on ESP32)
 
 BarrVerb reverb;
 int16_t inputBuffer[I2S_BUFF_SIZE * 2];

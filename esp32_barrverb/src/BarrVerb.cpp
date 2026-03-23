@@ -1,7 +1,7 @@
 #include "BarrVerb.h"
 #include "rom.h"
 
-void SVF::setFreq(float cutoff, float q, float samplerate) {
+IRAM_ATTR void SVF::setFreq(float cutoff, float q, float samplerate) {
     z1 = z2 = 0;
     // Pre-calculate constants
     // w = 2 * tan(pi * cutoff / samplerate)
@@ -16,7 +16,7 @@ void SVF::setFreq(float cutoff, float q, float samplerate) {
     d0 = c1 * c2 * 0.25f;
 }
 
-float SVF::lpStep(float in) {
+IRAM_ATTR float SVF::lpStep(float in) {
     x = in - z1 - z2;
     z2 += c2 * z1;
     z1 += c1 * x;
@@ -29,6 +29,8 @@ BarrVerb::BarrVerb() {
     if (ram) {
         memset(ram, 0, sizeof(int16_t) * 16384);
     }
+    // Initialize program buffer
+    memset(currentProgram, 0, sizeof(currentProgram));
 
     // Initialize filters with defaults
     setSampleRate(44100.0f);
@@ -48,6 +50,11 @@ void BarrVerb::setProgram(uint8_t programIndex) {
     if (program > 63) program = 0;
     // Calculate offset in ROM (128 words per program)
     prog_offset = (program & 0x3f) << 7;
+
+    // Load program from Flash to RAM cache
+    for (int i = 0; i < 128; i++) {
+        currentProgram[i] = pgm_read_word(&rom[prog_offset + i]);
+    }
 }
 
 const char* BarrVerb::getProgramName(uint8_t programIndex) {
@@ -58,7 +65,7 @@ const char* BarrVerb::getProgramName(uint8_t programIndex) {
     return prog_name[programIndex & 0x3f];
 }
 
-void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t frames) {
+IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t frames) {
     if (!ram) return;
 
     // Load state variables to locals for performance
@@ -66,6 +73,9 @@ void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t frames) {
     uint16_t l_ptr = ptr;
     int16_t l_ai = ai;
     int16_t l_li = li;
+
+    // Local pointer to program for speed
+    uint16_t* progPtr = currentProgram;
 
     // Process 2 frames at a time
     for (uint32_t i = 0; i < frames; i += 2) {
@@ -97,7 +107,8 @@ void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t frames) {
 
         // --- DSP Loop (128 steps) ---
         for (uint8_t step = 0; step < 128; step++) {
-            uint16_t opcode = pgm_read_word(&rom[prog_offset + step]);
+            // Read from RAM cache instead of Flash
+            uint16_t opcode = progPtr[step];
 
             switch (opcode & 0xc000) {
                 case 0x0000:
