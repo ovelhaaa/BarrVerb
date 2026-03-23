@@ -63,7 +63,7 @@ function App() {
     const playTestLoop = () => {
         setSource('test');
         audioSys.resume();
-        audioSys.loadUrl('/test-loop.wav');
+        audioSys.loadUrl(`${import.meta.env.BASE_URL}test-loop.wav`);
     };
 
     const playMic = () => {
