@@ -26,6 +26,35 @@ Certifique-se de que você tem o Node.js e o NPM instalados em sua máquina.
 
 3. Inicie o servidor de desenvolvimento Vite com o comando `npm run dev`.
 
+## Deploy no GitHub Pages
+
+O projeto está configurado para ser implantado de forma automática no GitHub Pages através do GitHub Actions. O workflow fica em `.github/workflows/deploy-pages.yml`.
+
+### Como Configurar no GitHub
+
+1. Vá até a aba **Settings** do seu repositório no GitHub.
+2. Acesse a aba **Pages** no menu à esquerda.
+3. Na seção **Build and deployment**, em **Source**, selecione **GitHub Actions**.
+
+A partir deste momento, sempre que houver um \`push\` na branch \`main\`, a action será disparada e construirá a pasta estática utilizando a base correta para o repositório, sem precisar alterar manualmente o \`vite.config.ts\`.
+
+### Observações sobre Base Path
+
+O deploy utiliza automaticamente o nome do repositório como o **Base Path** para o Vite (por exemplo: \`https://seu-usuario.github.io/nome-do-repositorio/\`). Isso acontece ao injetar a variável de ambiente \`VITE_BASE_PATH\` no momento do build.
+
+**Caso precise de um Base Path manual ou domínio customizado:**
+Se você for publicar num subcaminho ou domínio customizado (ex: \`https://meu-dominio.com\`), você precisará alterar manualmente o \`VITE_BASE_PATH\` no arquivo `.github/workflows/deploy-pages.yml` e ajustar o valor:
+
+\`\`\`yaml
+      - name: Build with Vite
+        run: |
+          # Altere de:
+          # REPO_NAME=${GITHUB_REPOSITORY#*/}
+          # VITE_BASE_PATH=/${REPO_NAME}/ npm run build
+          # Para:
+          VITE_BASE_PATH=/ npm run build
+\`\`\`
+
 ## Limitações Conhecidas
 
 - **Suporte aos Navegadores:** O uso da Web Audio API com `AudioWorkletProcessor` funciona nas versões modernas do Chrome e Edge. O comportamento e a latência em navegadores baseados em WebKit (Safari) podem sofrer impacto se a implementação de worklets de segundo plano não for robusta ou estiver configurada diferentemente por políticas do sistema operacional.
