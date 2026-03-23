@@ -72,9 +72,7 @@ export class BarrVerb {
      * @param programIndex The index of the program (0-63)
      */
     setProgram(rom: Uint16Array, programIndex: number) {
-        let prog = programIndex;
-        if (prog > 63) prog = 0;
-        const prog_offset = (prog & 0x3f) << 7; // * 128
+        const prog_offset = (programIndex & 0x3f) << 7; // * 128
 
         for (let i = 0; i < 128; i++) {
             this.currentProgram[i] = rom[prog_offset + i];
