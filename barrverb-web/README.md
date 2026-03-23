@@ -42,10 +42,16 @@ A partir deste momento, sempre que houver um \`push\` na branch \`main\`, a acti
 
 O deploy utiliza automaticamente o nome do repositório como o **Base Path** para o Vite (por exemplo: \`https://seu-usuario.github.io/nome-do-repositorio/\`). Isso acontece ao injetar a variável de ambiente \`VITE_BASE_PATH\` no momento do build.
 
-**Caso precise de um Base Path manual ou domínio customizado:**
-Se você for publicar num subcaminho ou domínio customizado (ex: \`https://meu-dominio.com\`), você precisará alterar manualmente o \`VITE_BASE_PATH\` no arquivo `.github/workflows/deploy-pages.yml` e ajustar o valor:
+**Caso precise de um domínio customizado ou Base Path manual:**
 
-\`\`\`yaml
+A configuração do `VITE_BASE_PATH` no arquivo `.github/workflows/deploy-pages.yml` precisa ser ajustada manualmente para cenários de publicação específicos:
+
+- **Para um domínio customizado na raiz (ex: `https://meu-dominio.com`):** O `VITE_BASE_PATH` deve ser `/`.
+- **Para um subcaminho (ex: `https://meu-dominio.com/meu-app/`):** O `VITE_BASE_PATH` deve ser `/meu-app/`.
+
+O exemplo abaixo mostra como alterar o workflow para usar um `VITE_BASE_PATH` de `/` (adequado para um domínio na raiz):
+
+```yaml
       - name: Build with Vite
         run: |
           # Altere de:
@@ -53,7 +59,6 @@ Se você for publicar num subcaminho ou domínio customizado (ex: \`https://meu-
           # VITE_BASE_PATH=/${REPO_NAME}/ npm run build
           # Para:
           VITE_BASE_PATH=/ npm run build
-\`\`\`
 
 ## Limitações Conhecidas
 
