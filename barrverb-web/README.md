@@ -24,7 +24,7 @@ Certifique-se de que você tem o Node.js e o NPM instalados em sua máquina.
    npm install
    \`\`\`
 
-3. Inicie o servidor de desenvolvimento Vite em background ou num terminal separado usando o comando normal de iniciar do npm. (ex: start / dev)
+3. Inicie o servidor de desenvolvimento Vite com o comando `npm run dev`.
 
 ## Limitações Conhecidas
 
