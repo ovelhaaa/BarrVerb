@@ -93,8 +93,8 @@ function App() {
     return (
         <div className="container midiverb-skin">
             <header>
-                <h1 className="brand-logo">BarrVerb Web</h1>
-                <p className="brand-subtitle">Simulador Web Audio do DSP do BarrVerb</p>
+                <h1 className="brand-logo">Verb86 web</h1>
+                <p className="brand-subtitle">Simulador MIDIVERB baseado no plugin Barrverb</p>
             </header>
 
             {error && <div className="error-box">{error}</div>}
