@@ -22,9 +22,24 @@ export class AudioSystem {
             this.ctx = new AudioContext({ latencyHint: 'interactive' });
 
             // Register worklet
-            // In Vite, ?worker&url helps to load the worker script properly
-            const workletUrl = new URL('./worklet.ts', import.meta.url).href;
-            await this.ctx.audioWorklet.addModule(workletUrl);
+            // Using absolute path resolved via Vite base URL for robust GitHub Pages deployment
+            const workletUrl = `${import.meta.env.BASE_URL}worklets/barrverb-worklet.js`;
+
+            try {
+                await this.ctx.audioWorklet.addModule(workletUrl);
+            } catch (err: any) {
+                console.error(`Failed to load worklet from: ${workletUrl}`, err);
+
+                // Diagnostic fetch to distinguish 404 vs MIME/parse error
+                try {
+                    const res = await fetch(workletUrl);
+                    console.error(`Diagnostic fetch for ${workletUrl} - status: ${res.status} (${res.statusText}), ok: ${res.ok}, type: ${res.headers.get('content-type')}`);
+                } catch (fetchErr) {
+                    console.error(`Diagnostic fetch also failed:`, fetchErr);
+                }
+
+                throw new Error(`Failed to load AudioWorklet module from ${workletUrl}: ${err.message}`);
+            }
 
             this.workletNode = new AudioWorkletNode(this.ctx, 'barrverb-processor', {
                 numberOfInputs: 1,
