@@ -93,7 +93,7 @@ function App() {
     return (
         <div className="container midiverb-skin">
             <header>
-                <h1 className="brand-logo">Verb86 web</h1>
+                <h1 className="brand-logo">MIDIWErB 1986</h1>
                 <p className="brand-subtitle">Simulador MIDIVERB baseado no plugin Barrverb</p>
             </header>
 
