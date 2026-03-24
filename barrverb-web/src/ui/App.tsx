@@ -91,32 +91,38 @@ function App() {
     const outMeter = Math.min(outLevel * 100, 100);
 
     return (
-        <div className="container">
+        <div className="container midiverb-skin">
             <header>
-                <h1>BarrVerb Web</h1>
-                <p>Simulador Web Audio do DSP do BarrVerb</p>
+                <h1 className="brand-logo">BarrVerb Web</h1>
+                <p className="brand-subtitle">Simulador Web Audio do DSP do BarrVerb</p>
             </header>
 
             {error && <div className="error-box">{error}</div>}
 
             {!ready ? (
                 <div className="init-box">
-                    <button className="primary-btn" onClick={handleInit}>Iniciar Engine de Áudio</button>
+                    <button className="pad pad-primary" onClick={handleInit}>Iniciar Engine de Áudio</button>
                     <p className="note">É necessário clicar para permitir o uso da Web Audio API no navegador.</p>
                 </div>
             ) : (
                 <div className="panel">
-                    <div className="controls">
-                        <div className="control-group">
-                            <label>Program: {prog_names[program]}</label>
-                            <select value={program} onChange={handleProgramChange}>
-                                {prog_names.map((name, i) => (
-                                    <option key={i} value={i}>
-                                        {i.toString().padStart(2, '0')} - {name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    <div className="program-panel">
+                        <div className="controls">
+                            <div className="control-group program-group">
+                                <div className="program-header">
+                                    <label htmlFor="program-select">Program: {prog_names[program]}</label>
+                                    <div className="led" aria-hidden="true">
+                                        {program.toString().padStart(2, '0')}
+                                    </div>
+                                </div>
+                                <select id="program-select" value={program} onChange={handleProgramChange}>
+                                    {prog_names.map((name, i) => (
+                                        <option key={i} value={i}>
+                                            {i.toString().padStart(2, '0')} - {name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
                         <div className="control-group">
                             <label>Dry / Wet: {Math.round(mix * 100)}%</label>
@@ -136,28 +142,29 @@ function App() {
                             />
                         </div>
 
-                        <div className="control-group switch-group">
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={bypass}
-                                    onChange={handleBypassToggle}
-                                />
-                                Bypass Effect
-                            </label>
+                            <div className="control-group switch-group">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={bypass}
+                                        onChange={handleBypassToggle}
+                                    />
+                                    Bypass Effect
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <div className="io-section">
                         <h3>Fontes de Áudio</h3>
                         <div className="source-buttons">
-                            <button className={source === 'test' ? 'active' : ''} onClick={playTestLoop}>
+                            <button className={`pad pad-primary ${source === 'test' ? 'is-active' : ''}`} onClick={playTestLoop}>
                                 Play Test Loop
                             </button>
-                            <button className={source === 'mic' ? 'active' : ''} onClick={playMic}>
+                            <button className={`pad pad-secondary ${source === 'mic' ? 'is-active' : ''}`} onClick={playMic}>
                                 Use Microphone
                             </button>
-                            <button onClick={() => fileInputRef.current?.click()}>
+                            <button className="pad pad-secondary" onClick={() => fileInputRef.current?.click()}>
                                 Upload File
                             </button>
                             <input
@@ -167,7 +174,7 @@ function App() {
                                 style={{ display: 'none' }}
                                 onChange={handleFileUpload}
                             />
-                            <button className="stop-btn" onClick={stopAudio} disabled={source === 'none'}>
+                            <button className="pad pad-primary stop-btn" onClick={stopAudio} disabled={source === 'none'}>
                                 Stop
                             </button>
                         </div>
