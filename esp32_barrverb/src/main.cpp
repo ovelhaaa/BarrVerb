@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <driver/i2s.h>
 #include "BarrVerb.h"
+#include "ModulationWrapper.h"
 
 // I2S Configuration
 #define I2S_NUM         I2S_NUM_0
@@ -15,7 +16,10 @@
 #define I2S_DIN_PIN     35  // Data In (Not used for DAC output, input-only pin on ESP32)
 
 BarrVerb reverb;
+ModulationWrapper* modWrapper = nullptr;
+
 int16_t inputBuffer[I2S_BUFF_SIZE * 2];
+int16_t reverbBuffer[I2S_BUFF_SIZE * 2];
 int16_t outputBuffer[I2S_BUFF_SIZE * 2];
 
 // Signal Generator State
@@ -102,8 +106,16 @@ void setup() {
     reverb.setSampleRate(I2S_SAMPLE_RATE);
     reverb.setProgram(0); // Start with first program
 
+    modWrapper = new ModulationWrapper(I2S_SAMPLE_RATE);
+
     Serial.println("Program: 0");
     Serial.println(reverb.getProgramName(0));
+    Serial.println("Commands:");
+    Serial.println("  + / - : Change Program");
+    Serial.println("  s     : Change Input Source");
+    Serial.println("  c     : Toggle Chorus");
+    Serial.println("  p     : Toggle Phaser");
+    Serial.println("  0     : FX Off");
 }
 
 void loop() {
@@ -113,9 +125,36 @@ void loop() {
     generateSignal(inputBuffer, I2S_BUFF_SIZE);
 
     // 2. Process Reverb
-    reverb.run(inputBuffer, outputBuffer, I2S_BUFF_SIZE);
+    reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
 
-    // 3. Output to I2S
+    // 3. Process Modulation (Post-Reverb)
+    for (uint32_t i = 0; i < I2S_BUFF_SIZE; i++) {
+        float inL = (float)reverbBuffer[i * 2] / 32768.0f;
+        float inR = (float)reverbBuffer[i * 2 + 1] / 32768.0f;
+
+        float outL, outR;
+        if (modWrapper) {
+            modWrapper->process(inL, inR, &outL, &outR);
+        } else {
+            outL = inL;
+            outR = inR;
+        }
+
+        // Convert back to 16-bit
+        int32_t finalL = (int32_t)(outL * 32768.0f);
+        int32_t finalR = (int32_t)(outR * 32768.0f);
+
+        // Clamp
+        if (finalL > 32767) finalL = 32767;
+        else if (finalL < -32768) finalL = -32768;
+        if (finalR > 32767) finalR = 32767;
+        else if (finalR < -32768) finalR = -32768;
+
+        outputBuffer[i * 2] = (int16_t)finalL;
+        outputBuffer[i * 2 + 1] = (int16_t)finalR;
+    }
+
+    // 4. Output to I2S
     i2s_write(I2S_NUM, outputBuffer, sizeof(outputBuffer), &bytes_written, portMAX_DELAY);
 
     // Simple Serial control to change programs
@@ -139,6 +178,15 @@ void loop() {
             if (src > 3) src = 0;
             currentSource = (SourceType)src;
             Serial.printf("Source changed to %d\n", src);
+        } else if (c == 'c') {
+            if (modWrapper) modWrapper->setParameters(1, 0.8f, 10.0f, 0.5f, 0.0f);
+            Serial.println("Chorus ON");
+        } else if (c == 'p') {
+            if (modWrapper) modWrapper->setParameters(2, 0.4f, 0.8f, 0.5f, 0.5f);
+            Serial.println("Phaser ON");
+        } else if (c == '0') {
+            if (modWrapper) modWrapper->setParameters(0, 0.0f, 0.0f, 0.0f, 0.0f);
+            Serial.println("FX OFF");
         }
     }
 }

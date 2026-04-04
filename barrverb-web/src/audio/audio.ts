@@ -175,6 +175,19 @@ export class AudioSystem {
         }
     }
 
+    setModulation(type: number, rate: number, depth: number, mix: number, feedback: number) {
+        if (this.workletNode) {
+            this.workletNode.port.postMessage({
+                type: 'setModulation',
+                modType: type,
+                modRate: rate,
+                modDepth: depth,
+                modMix: mix,
+                modFeedback: feedback
+            });
+        }
+    }
+
     private startLevelLoop() {
         const dataIn = new Float32Array(256);
         const dataOut = new Float32Array(256);
