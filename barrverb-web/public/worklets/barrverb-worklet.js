@@ -8396,9 +8396,219 @@ var rom = new Uint16Array([
   65397
 ]);
 
+// src/dsp/effects/LFO.ts
+var LFO = class _LFO {
+  phase = 0;
+  phaseInc = 0;
+  sampleRate = 44100;
+  rate = 1;
+  // Simple look-up table (LUT) for a sine wave (256 entries)
+  static sineLUT;
+  constructor(sampleRate2) {
+    this.sampleRate = sampleRate2;
+    this.setRate(1);
+    if (!_LFO.sineLUT) {
+      _LFO.sineLUT = new Float32Array(256);
+      for (let i = 0; i < 256; i++) {
+        _LFO.sineLUT[i] = Math.sin(i / 256 * Math.PI * 2);
+      }
+    }
+  }
+  setRate(rateHz) {
+    this.rate = rateHz;
+    this.phaseInc = this.rate / this.sampleRate;
+  }
+  // Returns a value from -1.0 to 1.0
+  process() {
+    const pos = this.phase * 256;
+    const index = Math.floor(pos);
+    const frac = pos - index;
+    const idx1 = index % 256;
+    const idx2 = (index + 1) % 256;
+    const val1 = _LFO.sineLUT[idx1];
+    const val2 = _LFO.sineLUT[idx2];
+    const out = val1 + frac * (val2 - val1);
+    this.phase += this.phaseInc;
+    if (this.phase >= 1) this.phase -= 1;
+    return out;
+  }
+};
+
+// src/dsp/effects/Chorus.ts
+var Chorus = class {
+  delayLineL;
+  delayLineR;
+  writeIndex = 0;
+  maxDelaySamples;
+  lfo;
+  // Parameters
+  depthMs = 5;
+  // Max sweep depth in ms
+  baseDelayMs = 10;
+  // Base delay in ms
+  mix = 0.5;
+  // 0.0 to 1.0
+  sampleRate = 44100;
+  constructor(sampleRate2) {
+    this.sampleRate = sampleRate2;
+    this.maxDelaySamples = Math.ceil(sampleRate2 * 0.05);
+    this.delayLineL = new Float32Array(this.maxDelaySamples);
+    this.delayLineR = new Float32Array(this.maxDelaySamples);
+    this.lfo = new LFO(sampleRate2);
+    this.lfo.setRate(1);
+  }
+  setParameters(rate, depth, mix) {
+    this.lfo.setRate(rate);
+    this.depthMs = depth;
+    this.mix = mix;
+  }
+  process(inL, inR) {
+    const lfoVal = this.lfo.process();
+    const sweepVal = (lfoVal + 1) * 0.5;
+    const currentDelayMs = this.baseDelayMs + sweepVal * this.depthMs;
+    const currentDelaySamples = currentDelayMs * (this.sampleRate / 1e3);
+    let readPos = this.writeIndex - currentDelaySamples;
+    if (readPos < 0) readPos += this.maxDelaySamples;
+    const readIdx1 = Math.floor(readPos);
+    let readIdx2 = readIdx1 + 1;
+    if (readIdx2 >= this.maxDelaySamples) readIdx2 -= this.maxDelaySamples;
+    const frac = readPos - readIdx1;
+    const dl1 = this.delayLineL[readIdx1];
+    const dl2 = this.delayLineL[readIdx2];
+    const delayOutL = dl1 + frac * (dl2 - dl1);
+    const dr1 = this.delayLineR[readIdx1];
+    const dr2 = this.delayLineR[readIdx2];
+    const delayOutR = dr1 + frac * (dr2 - dr1);
+    this.delayLineL[this.writeIndex] = inL;
+    this.delayLineR[this.writeIndex] = inR;
+    this.writeIndex++;
+    if (this.writeIndex >= this.maxDelaySamples) {
+      this.writeIndex = 0;
+    }
+    const outL = inL * (1 - this.mix) + delayOutL * this.mix;
+    const outR = inR * (1 - this.mix) + delayOutR * this.mix;
+    return [outL, outR];
+  }
+};
+
+// src/dsp/effects/Phaser.ts
+var AllPassFilter = class {
+  a1 = 0;
+  z1 = 0;
+  setGain(a1) {
+    this.a1 = a1;
+  }
+  process(input) {
+    const output = this.z1 - this.a1 * input;
+    this.z1 = input + this.a1 * output;
+    return output;
+  }
+};
+var Phaser = class {
+  stagesL = [];
+  stagesR = [];
+  lfo;
+  sampleRate;
+  // Parameters
+  rate = 0.5;
+  depth = 0.8;
+  mix = 0.5;
+  feedback = 0.4;
+  stagesCount = 4;
+  z1FeedbackL = 0;
+  z1FeedbackR = 0;
+  constructor(sampleRate2) {
+    this.sampleRate = sampleRate2;
+    this.lfo = new LFO(sampleRate2);
+    this.lfo.setRate(this.rate);
+    for (let i = 0; i < this.stagesCount; i++) {
+      this.stagesL.push(new AllPassFilter());
+      this.stagesR.push(new AllPassFilter());
+    }
+  }
+  // Instead of static LUT, we'll use an instance LUT since sampleRate might vary.
+  a1LUTLocal = new Float32Array(256);
+  lutInitialized = false;
+  initLUT() {
+    for (let i = 0; i < 256; i++) {
+      const fc = 400 + 3600 * (i / 255);
+      const w = Math.tan(Math.PI * fc / this.sampleRate);
+      this.a1LUTLocal[i] = (1 - w) / (1 + w);
+    }
+    this.lutInitialized = true;
+  }
+  setParameters(rate, depth, mix, feedback) {
+    this.rate = rate;
+    this.depth = depth;
+    this.mix = mix;
+    this.feedback = feedback;
+    this.lfo.setRate(this.rate);
+    if (!this.lutInitialized) this.initLUT();
+  }
+  process(inL, inR) {
+    if (!this.lutInitialized) this.initLUT();
+    const lfoVal = this.lfo.process();
+    const sweepVal = (lfoVal + 1) * 0.5 * this.depth;
+    const center = 0.5;
+    let normVal = center + (sweepVal - this.depth * 0.5);
+    if (normVal < 0) normVal = 0;
+    if (normVal > 1) normVal = 1;
+    const lutPos = normVal * 255;
+    const idx1 = Math.floor(lutPos);
+    let idx2 = idx1 + 1;
+    if (idx2 > 255) idx2 = 255;
+    const frac = lutPos - idx1;
+    const a1Val1 = this.a1LUTLocal[idx1];
+    const a1Val2 = this.a1LUTLocal[idx2];
+    const a1 = a1Val1 + frac * (a1Val2 - a1Val1);
+    let stageInL = inL + this.z1FeedbackL * this.feedback;
+    let stageInR = inR + this.z1FeedbackR * this.feedback;
+    for (let i = 0; i < this.stagesCount; i++) {
+      this.stagesL[i].setGain(a1);
+      this.stagesR[i].setGain(a1);
+      stageInL = this.stagesL[i].process(stageInL);
+      stageInR = this.stagesR[i].process(stageInR);
+    }
+    this.z1FeedbackL = stageInL;
+    this.z1FeedbackR = stageInR;
+    const outL = inL * (1 - this.mix) + stageInL * this.mix;
+    const outR = inR * (1 - this.mix) + stageInR * this.mix;
+    return [outL, outR];
+  }
+};
+
+// src/dsp/effects/ModulationWrapper.ts
+var ModulationWrapper = class {
+  chorus;
+  phaser;
+  // Type 0: None, 1: Chorus, 2: Phaser
+  type = 0;
+  constructor(sampleRate2) {
+    this.chorus = new Chorus(sampleRate2);
+    this.phaser = new Phaser(sampleRate2);
+  }
+  setParameters(type, rate, depth, mix, feedback) {
+    this.type = type;
+    if (type === 1) {
+      this.chorus.setParameters(rate, depth, mix);
+    } else if (type === 2) {
+      this.phaser.setParameters(rate, depth, mix, feedback);
+    }
+  }
+  process(inL, inR) {
+    if (this.type === 1) {
+      return this.chorus.process(inL, inR);
+    } else if (this.type === 2) {
+      return this.phaser.process(inL, inR);
+    }
+    return [inL, inR];
+  }
+};
+
 // src/audio/worklet.ts
 var BarrVerbProcessor = class extends AudioWorkletProcessor {
   reverb;
+  mod;
   bypass = false;
   wetMix = 0.5;
   outputGain = 1;
@@ -8411,6 +8621,7 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     this.wetR = new Float32Array(128);
     this.reverb.setSampleRate(sampleRate);
     this.reverb.setProgram(rom, 0);
+    this.mod = new ModulationWrapper(sampleRate);
     this.port.onmessage = (event) => {
       const data = event.data;
       if (data.type === "setProgram") {
@@ -8421,6 +8632,8 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
         this.bypass = data.bypass;
       } else if (data.type === "setGain") {
         this.outputGain = data.gain;
+      } else if (data.type === "setModulation") {
+        this.mod.setParameters(data.modType, data.modRate, data.modDepth, data.modMix, data.modFeedback);
       }
     };
   }
@@ -8454,9 +8667,10 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     const dryLevel = 1 - this.wetMix;
     const wetLevel = this.wetMix;
     for (let i = 0; i < frames; i++) {
-      outputL[i] = (inputL[i] * dryLevel + this.wetL[i] * wetLevel) * this.outputGain;
+      const [modL, modR] = this.mod.process(this.wetL[i], this.wetR[i]);
+      outputL[i] = (inputL[i] * dryLevel + modL * wetLevel) * this.outputGain;
       if (output.length > 1) {
-        outputR[i] = (inputR[i] * dryLevel + this.wetR[i] * wetLevel) * this.outputGain;
+        outputR[i] = (inputR[i] * dryLevel + modR * wetLevel) * this.outputGain;
       }
     }
     return true;

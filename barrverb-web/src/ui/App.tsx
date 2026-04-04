@@ -12,6 +12,14 @@ function App() {
     const [mix, setMix] = useState(0.5);
     const [gain, setGain] = useState(1.0);
     const [bypass, setBypass] = useState(false);
+
+    // Modulation State
+    const [modType, setModType] = useState(0);
+    const [modRate, setModRate] = useState(0.8);
+    const [modDepth, setModDepth] = useState(5.0);
+    const [modMix, setModMix] = useState(0.5);
+    const [modFeedback, setModFeedback] = useState(0.5);
+
     const [inLevel, setInLevel] = useState(0);
     const [outLevel, setOutLevel] = useState(0);
     const [source, setSource] = useState<string>('none'); // 'none', 'mic', 'file', 'test'
@@ -59,6 +67,12 @@ function App() {
         setBypass(val);
         audioSys.setBypass(val);
     };
+
+    useEffect(() => {
+        if (ready) {
+            audioSys.setModulation(modType, modRate, modDepth, modMix, modFeedback);
+        }
+    }, [modType, modRate, modDepth, modMix, modFeedback, ready]);
 
     const playTestLoop = () => {
         setSource('test');
@@ -152,6 +166,59 @@ function App() {
                                     Bypass Effect
                                 </label>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="modulation-panel">
+                        <h3>Modulação (Pós-Reverb)</h3>
+                        <div className="controls">
+                            <div className="control-group">
+                                <label>Mod Effect:</label>
+                                <select value={modType} onChange={(e) => setModType(parseInt(e.target.value, 10))}>
+                                    <option value={0}>Off</option>
+                                    <option value={1}>Chorus / Flanger</option>
+                                    <option value={2}>Phaser</option>
+                                </select>
+                            </div>
+
+                            {modType > 0 && (
+                                <>
+                                    <div className="control-group">
+                                        <label>Rate: {modRate.toFixed(2)} Hz</label>
+                                        <input
+                                            type="range"
+                                            min="0.1" max="10" step="0.1"
+                                            value={modRate} onChange={(e) => setModRate(parseFloat(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className="control-group">
+                                        <label>Depth: {modType === 1 ? `${modDepth.toFixed(1)} ms` : `${Math.round(modDepth * 100)}%`}</label>
+                                        <input
+                                            type="range"
+                                            min="0.1" max={modType === 1 ? 20 : 1} step="0.1"
+                                            value={modDepth} onChange={(e) => setModDepth(parseFloat(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className="control-group">
+                                        <label>Mix: {Math.round(modMix * 100)}%</label>
+                                        <input
+                                            type="range"
+                                            min="0" max="1" step="0.05"
+                                            value={modMix} onChange={(e) => setModMix(parseFloat(e.target.value))}
+                                        />
+                                    </div>
+                                    {modType === 2 && (
+                                        <div className="control-group">
+                                            <label>Feedback: {Math.round(modFeedback * 100)}%</label>
+                                            <input
+                                                type="range"
+                                                min="0" max="0.9" step="0.05"
+                                                value={modFeedback} onChange={(e) => setModFeedback(parseFloat(e.target.value))}
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
 

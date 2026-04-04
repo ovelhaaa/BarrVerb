@@ -515,3 +515,19 @@ header::after {
         width: 100%;
     }
 }
+.modulation-panel {
+    background-color: var(--color-surface);
+    border: 2px solid var(--color-stripe);
+    border-radius: 4px;
+    padding: 1.5rem;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+    margin-bottom: 2rem;
+}
+
+.modulation-panel h3 {
+    margin-top: 0;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
