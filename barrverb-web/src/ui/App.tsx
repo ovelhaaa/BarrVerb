@@ -192,7 +192,7 @@ function App() {
                                         />
                                     </div>
                                     <div className="control-group">
-                                        <label>Depth: {modDepth.toFixed(1)} ms</label>
+                                        <label>Depth: {modType === 1 ? `${modDepth.toFixed(1)} ms` : `${Math.round(modDepth * 100)}%`}</label>
                                         <input
                                             type="range"
                                             min="0.1" max={modType === 1 ? 20 : 1} step="0.1"
