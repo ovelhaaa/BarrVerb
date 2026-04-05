@@ -20,7 +20,18 @@ ModulationWrapper* modWrapper = nullptr;
 
 int16_t inputBuffer[I2S_BUFF_SIZE * 2];
 int16_t reverbBuffer[I2S_BUFF_SIZE * 2];
+int16_t modBuffer[I2S_BUFF_SIZE * 2];
 int16_t outputBuffer[I2S_BUFF_SIZE * 2];
+
+// Modulation Routing State
+enum ModRouting {
+    ROUTE_WET_POST, // Modulate Reverb Output
+    ROUTE_WET_PRE,  // Modulate Reverb Input
+    ROUTE_DRY,      // Modulate Dry Output
+    ROUTE_MIX       // Modulate Mixed Output
+};
+ModRouting currentRouting = ROUTE_WET_POST;
+const char* routingNames[] = {"Wet (Post-Rev)", "Wet (Pre-Rev)", "Dry", "Mix"};
 
 // Signal Generator State
 enum SourceType {
@@ -97,6 +108,27 @@ void generateSignal(int16_t *buffer, uint32_t frames) {
     }
 }
 
+inline int16_t clamp16(int32_t val) {
+    if (val > 32767) return 32767;
+    if (val < -32768) return -32768;
+    return (int16_t)val;
+}
+
+void applyModulation(int16_t* inBuf, int16_t* outBuf, uint32_t frames) {
+    for (uint32_t i = 0; i < frames; i++) {
+        float inL = (float)inBuf[i * 2] / 32768.0f;
+        float inR = (float)inBuf[i * 2 + 1] / 32768.0f;
+        float outL, outR;
+        if (modWrapper) {
+            modWrapper->process(inL, inR, &outL, &outR);
+        } else {
+            outL = inL; outR = inR;
+        }
+        outBuf[i * 2] = clamp16((int32_t)(outL * 32768.0f));
+        outBuf[i * 2 + 1] = clamp16((int32_t)(outR * 32768.0f));
+    }
+}
+
 void setup() {
     Serial.begin(115200);
     Serial.println("BarrVerb ESP32 Starting...");
@@ -113,6 +145,7 @@ void setup() {
     Serial.println("Commands:");
     Serial.println("  + / - : Change Program");
     Serial.println("  s     : Change Input Source");
+    Serial.println("  r     : Change Mod Routing");
     Serial.println("  c     : Toggle Chorus");
     Serial.println("  p     : Toggle Phaser");
     Serial.println("  0     : FX Off");
@@ -124,37 +157,45 @@ void loop() {
     // 1. Generate Input Signal
     generateSignal(inputBuffer, I2S_BUFF_SIZE);
 
-    // 2. Process Reverb
-    reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
+    // 2. Process Audio Graph based on Routing
+    if (currentRouting == ROUTE_WET_POST) {
+        // Dry -> Reverb -> Mod -> Output
+        reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
+        applyModulation(reverbBuffer, modBuffer, I2S_BUFF_SIZE);
 
-    // 3. Process Modulation (Post-Reverb)
-    for (uint32_t i = 0; i < I2S_BUFF_SIZE; i++) {
-        float inL = (float)reverbBuffer[i * 2] / 32768.0f;
-        float inR = (float)reverbBuffer[i * 2 + 1] / 32768.0f;
+        for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
+            outputBuffer[i] = clamp16((inputBuffer[i] + modBuffer[i]) / 2);
+        }
+    } else if (currentRouting == ROUTE_WET_PRE) {
+        // Dry -> Mod -> Reverb -> Output
+        applyModulation(inputBuffer, modBuffer, I2S_BUFF_SIZE);
+        reverb.run(modBuffer, reverbBuffer, I2S_BUFF_SIZE);
 
-        float outL, outR;
-        if (modWrapper) {
-            modWrapper->process(inL, inR, &outL, &outR);
-        } else {
-            outL = inL;
-            outR = inR;
+        for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
+            // Mix original dry with reverb (which has modulated input)
+            outputBuffer[i] = clamp16((inputBuffer[i] + reverbBuffer[i]) / 2);
+        }
+    } else if (currentRouting == ROUTE_DRY) {
+        // Dry -> Mod -> Output (Dry)  AND  Dry -> Reverb -> Output (Wet)
+        reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
+        applyModulation(inputBuffer, modBuffer, I2S_BUFF_SIZE);
+
+        for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
+            // Mix modulated dry with unmodulated reverb
+            outputBuffer[i] = clamp16((modBuffer[i] + reverbBuffer[i]) / 2);
+        }
+    } else if (currentRouting == ROUTE_MIX) {
+        // Dry -> Reverb -> Mix -> Mod -> Output
+        reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
+
+        for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
+            modBuffer[i] = clamp16((inputBuffer[i] + reverbBuffer[i]) / 2);
         }
 
-        // Convert back to 16-bit
-        int32_t finalL = (int32_t)(outL * 32768.0f);
-        int32_t finalR = (int32_t)(outR * 32768.0f);
-
-        // Clamp
-        if (finalL > 32767) finalL = 32767;
-        else if (finalL < -32768) finalL = -32768;
-        if (finalR > 32767) finalR = 32767;
-        else if (finalR < -32768) finalR = -32768;
-
-        outputBuffer[i * 2] = (int16_t)finalL;
-        outputBuffer[i * 2 + 1] = (int16_t)finalR;
+        applyModulation(modBuffer, outputBuffer, I2S_BUFF_SIZE);
     }
 
-    // 4. Output to I2S
+    // 3. Output to I2S
     i2s_write(I2S_NUM, outputBuffer, sizeof(outputBuffer), &bytes_written, portMAX_DELAY);
 
     // Simple Serial control to change programs
@@ -178,6 +219,9 @@ void loop() {
             if (src > 3) src = 0;
             currentSource = (SourceType)src;
             Serial.printf("Source changed to %d\n", src);
+        } else if (c == 'r') {
+            currentRouting = (ModRouting)((currentRouting + 1) % 4);
+            Serial.printf("Routing changed to: %s\n", routingNames[currentRouting]);
         } else if (c == 'c') {
             if (modWrapper) modWrapper->setParameters(1, 0.8f, 10.0f, 0.5f, 0.0f);
             Serial.println("Chorus ON");
