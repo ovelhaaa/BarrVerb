@@ -80,6 +80,123 @@ export class AudioSystem {
         }
     }
 
+    async exportProcessedMp3(
+        file: File,
+        settings: {
+            program: number;
+            mix: number;
+            bypass: boolean;
+            gain: number;
+            modulation: {
+                type: number;
+                rate: number;
+                depth: number;
+                mix: number;
+                feedback: number;
+            };
+        }
+    ): Promise<{ blob: Blob; mimeType: string; extension: string }> {
+        if (!this.ctx) {
+            throw new Error('Audio engine not initialized.');
+        }
+        if (this.ctx.state === 'suspended') {
+            await this.ctx.resume();
+        }
+
+        const fileData = await file.arrayBuffer();
+        const decodedBuffer = await this.ctx.decodeAudioData(fileData);
+
+        const tailSeconds = 3;
+        const offlineCtx = new OfflineAudioContext({
+            numberOfChannels: 2,
+            length: decodedBuffer.length + Math.floor(decodedBuffer.sampleRate * tailSeconds),
+            sampleRate: decodedBuffer.sampleRate
+        });
+
+        const workletUrl = `${import.meta.env.BASE_URL}worklets/barrverb-worklet.js`;
+        await offlineCtx.audioWorklet.addModule(workletUrl);
+
+        const source = offlineCtx.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.loop = false;
+
+        const workletNode = new AudioWorkletNode(offlineCtx, 'barrverb-processor', {
+            numberOfInputs: 1,
+            numberOfOutputs: 1,
+            outputChannelCount: [2]
+        });
+
+        workletNode.port.postMessage({ type: 'setProgram', program: settings.program });
+        workletNode.port.postMessage({ type: 'setMix', mix: settings.mix });
+        workletNode.port.postMessage({ type: 'setBypass', bypass: settings.bypass });
+        workletNode.port.postMessage({ type: 'setGain', gain: settings.gain });
+        workletNode.port.postMessage({
+            type: 'setModulation',
+            modType: settings.modulation.type,
+            modRate: settings.modulation.rate,
+            modDepth: settings.modulation.depth,
+            modMix: settings.modulation.mix,
+            modFeedback: settings.modulation.feedback
+        });
+
+        source.connect(workletNode);
+        workletNode.connect(offlineCtx.destination);
+        source.start(0);
+
+        const rendered = await offlineCtx.startRendering();
+        return this.encodeAudio(rendered);
+    }
+
+    private async encodeAudio(buffer: AudioBuffer): Promise<{ blob: Blob; mimeType: string; extension: string }> {
+        if (!this.ctx) {
+            throw new Error('Audio engine not initialized.');
+        }
+
+        const mimePreferences = [
+            { mimeType: 'audio/mpeg', extension: 'mp3' },
+            { mimeType: 'audio/mp3', extension: 'mp3' },
+            { mimeType: 'audio/webm;codecs=opus', extension: 'webm' },
+            { mimeType: 'audio/ogg;codecs=opus', extension: 'ogg' }
+        ];
+        const selectedFormat = mimePreferences.find((format) => MediaRecorder.isTypeSupported(format.mimeType));
+
+        const supportedType = selectedFormat?.mimeType;
+        if (!supportedType) {
+            throw new Error('Browser does not support export recording (MP3/WebM/OGG) via MediaRecorder.');
+        }
+
+        const streamDestination = this.ctx.createMediaStreamDestination();
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(streamDestination);
+
+        const chunks: BlobPart[] = [];
+        const recorder = new MediaRecorder(streamDestination.stream, { mimeType: supportedType });
+
+        recorder.ondataavailable = (event: BlobEvent) => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        const completed = new Promise<{ blob: Blob; mimeType: string; extension: string }>((resolve, reject) => {
+            recorder.onerror = (event: any) => {
+                reject(event.error ?? new Error('MediaRecorder error.'));
+            };
+            recorder.onstop = () => resolve({
+                blob: new Blob(chunks, { type: supportedType }),
+                mimeType: supportedType,
+                extension: selectedFormat!.extension
+            });
+        });
+
+        recorder.start();
+        source.start();
+        source.onended = () => recorder.stop();
+
+        return completed;
+    }
+
     async loadUrl(url: string) {
          if (!this.ctx) return;
          this.stopSource();
