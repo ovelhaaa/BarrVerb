@@ -80,6 +80,111 @@ export class AudioSystem {
         }
     }
 
+    async exportProcessedMp3(
+        file: File,
+        settings: {
+            program: number;
+            mix: number;
+            bypass: boolean;
+            gain: number;
+            modulation: {
+                type: number;
+                rate: number;
+                depth: number;
+                mix: number;
+                feedback: number;
+            };
+        }
+    ): Promise<Blob> {
+        if (!this.ctx) {
+            throw new Error('Audio engine not initialized.');
+        }
+        if (this.ctx.state === 'suspended') {
+            await this.ctx.resume();
+        }
+
+        const fileData = await file.arrayBuffer();
+        const decodedBuffer = await this.ctx.decodeAudioData(fileData);
+
+        const offlineCtx = new OfflineAudioContext({
+            numberOfChannels: 2,
+            length: decodedBuffer.length,
+            sampleRate: decodedBuffer.sampleRate
+        });
+
+        const workletUrl = `${import.meta.env.BASE_URL}worklets/barrverb-worklet.js`;
+        await offlineCtx.audioWorklet.addModule(workletUrl);
+
+        const source = offlineCtx.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.loop = false;
+
+        const workletNode = new AudioWorkletNode(offlineCtx, 'barrverb-processor', {
+            numberOfInputs: 1,
+            numberOfOutputs: 1,
+            outputChannelCount: [2]
+        });
+
+        workletNode.port.postMessage({ type: 'setProgram', program: settings.program });
+        workletNode.port.postMessage({ type: 'setMix', mix: settings.mix });
+        workletNode.port.postMessage({ type: 'setBypass', bypass: settings.bypass });
+        workletNode.port.postMessage({ type: 'setGain', gain: settings.gain });
+        workletNode.port.postMessage({
+            type: 'setModulation',
+            modType: settings.modulation.type,
+            modRate: settings.modulation.rate,
+            modDepth: settings.modulation.depth,
+            modMix: settings.modulation.mix,
+            modFeedback: settings.modulation.feedback
+        });
+
+        source.connect(workletNode);
+        workletNode.connect(offlineCtx.destination);
+        source.start(0);
+
+        const rendered = await offlineCtx.startRendering();
+        return this.encodeMp3(rendered);
+    }
+
+    private async encodeMp3(buffer: AudioBuffer): Promise<Blob> {
+        if (!this.ctx) {
+            throw new Error('Audio engine not initialized.');
+        }
+
+        const mp3MimeTypes = ['audio/mpeg', 'audio/mp3'];
+        const supportedType = mp3MimeTypes.find((type) => MediaRecorder.isTypeSupported(type));
+        if (!supportedType) {
+            throw new Error('Browser does not support MP3 recording via MediaRecorder.');
+        }
+
+        const streamDestination = this.ctx.createMediaStreamDestination();
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(streamDestination);
+
+        const chunks: BlobPart[] = [];
+        const recorder = new MediaRecorder(streamDestination.stream, { mimeType: supportedType });
+
+        recorder.ondataavailable = (event: BlobEvent) => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        const completed = new Promise<Blob>((resolve, reject) => {
+            recorder.onerror = (event) => {
+                reject((event as ErrorEvent).error ?? new Error('MediaRecorder error.'));
+            };
+            recorder.onstop = () => resolve(new Blob(chunks, { type: supportedType }));
+        });
+
+        recorder.start();
+        source.start();
+        source.onended = () => recorder.stop();
+
+        return completed;
+    }
+
     async loadUrl(url: string) {
          if (!this.ctx) return;
          this.stopSource();

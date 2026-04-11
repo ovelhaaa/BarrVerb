@@ -23,6 +23,8 @@ function App() {
     const [inLevel, setInLevel] = useState(0);
     const [outLevel, setOutLevel] = useState(0);
     const [source, setSource] = useState<string>('none'); // 'none', 'mic', 'file', 'test'
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,9 +96,48 @@ function App() {
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setUploadedFile(file);
             setSource('file');
             audioSys.resume();
             audioSys.loadFile(file);
+        }
+    };
+
+    const handleExportMp3 = async () => {
+        if (!uploadedFile || isExporting) return;
+
+        setIsExporting(true);
+        setError('');
+
+        try {
+            const mp3Blob = await audioSys.exportProcessedMp3(uploadedFile, {
+                program,
+                mix,
+                bypass,
+                gain,
+                modulation: {
+                    type: modType,
+                    rate: modRate,
+                    depth: modDepth,
+                    mix: modMix,
+                    feedback: modFeedback
+                }
+            });
+
+            const baseName = uploadedFile.name.replace(/\.[^/.]+$/, '');
+            const downloadUrl = URL.createObjectURL(mp3Blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `${baseName}-barrverb.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(downloadUrl);
+        } catch (e) {
+            console.error(e);
+            setError('Falha ao exportar MP3. Tente novamente.');
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -233,6 +274,13 @@ function App() {
                             </button>
                             <button className="pad pad-secondary" onClick={() => fileInputRef.current?.click()}>
                                 Upload File
+                            </button>
+                            <button
+                                className="pad pad-primary"
+                                onClick={handleExportMp3}
+                                disabled={!uploadedFile || isExporting}
+                            >
+                                {isExporting ? 'Exportando MP3...' : 'Exportar MP3'}
                             </button>
                             <input
                                 type="file"
