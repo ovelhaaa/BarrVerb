@@ -110,7 +110,7 @@ function App() {
         setError('');
 
         try {
-            const mp3Blob = await audioSys.exportProcessedMp3(uploadedFile, {
+            const exported = await audioSys.exportProcessedMp3(uploadedFile, {
                 program,
                 mix,
                 bypass,
@@ -125,14 +125,17 @@ function App() {
             });
 
             const baseName = uploadedFile.name.replace(/\.[^/.]+$/, '');
-            const downloadUrl = URL.createObjectURL(mp3Blob);
+            const downloadUrl = URL.createObjectURL(exported.blob);
             const link = document.createElement('a');
             link.href = downloadUrl;
-            link.download = `${baseName}-barrverb.mp3`;
+            link.download = `${baseName}-barrverb.${exported.extension}`;
             document.body.appendChild(link);
             link.click();
             link.remove();
             URL.revokeObjectURL(downloadUrl);
+            if (exported.extension !== 'mp3') {
+                setError(`Seu navegador não suporta MP3 via MediaRecorder. Exportado em ${exported.extension.toUpperCase()} (${exported.mimeType}).`);
+            }
         } catch (e) {
             console.error(e);
             setError('Falha ao exportar MP3. Tente novamente.');

@@ -95,7 +95,7 @@ export class AudioSystem {
                 feedback: number;
             };
         }
-    ): Promise<Blob> {
+    ): Promise<{ blob: Blob; mimeType: string; extension: string }> {
         if (!this.ctx) {
             throw new Error('Audio engine not initialized.');
         }
@@ -106,9 +106,10 @@ export class AudioSystem {
         const fileData = await file.arrayBuffer();
         const decodedBuffer = await this.ctx.decodeAudioData(fileData);
 
+        const tailSeconds = 3;
         const offlineCtx = new OfflineAudioContext({
             numberOfChannels: 2,
-            length: decodedBuffer.length,
+            length: decodedBuffer.length + Math.floor(decodedBuffer.sampleRate * tailSeconds),
             sampleRate: decodedBuffer.sampleRate
         });
 
@@ -143,18 +144,25 @@ export class AudioSystem {
         source.start(0);
 
         const rendered = await offlineCtx.startRendering();
-        return this.encodeMp3(rendered);
+        return this.encodeAudio(rendered);
     }
 
-    private async encodeMp3(buffer: AudioBuffer): Promise<Blob> {
+    private async encodeAudio(buffer: AudioBuffer): Promise<{ blob: Blob; mimeType: string; extension: string }> {
         if (!this.ctx) {
             throw new Error('Audio engine not initialized.');
         }
 
-        const mp3MimeTypes = ['audio/mpeg', 'audio/mp3'];
-        const supportedType = mp3MimeTypes.find((type) => MediaRecorder.isTypeSupported(type));
+        const mimePreferences = [
+            { mimeType: 'audio/mpeg', extension: 'mp3' },
+            { mimeType: 'audio/mp3', extension: 'mp3' },
+            { mimeType: 'audio/webm;codecs=opus', extension: 'webm' },
+            { mimeType: 'audio/ogg;codecs=opus', extension: 'ogg' }
+        ];
+        const selectedFormat = mimePreferences.find((format) => MediaRecorder.isTypeSupported(format.mimeType));
+
+        const supportedType = selectedFormat?.mimeType;
         if (!supportedType) {
-            throw new Error('Browser does not support MP3 recording via MediaRecorder.');
+            throw new Error('Browser does not support export recording (MP3/WebM/OGG) via MediaRecorder.');
         }
 
         const streamDestination = this.ctx.createMediaStreamDestination();
@@ -171,11 +179,15 @@ export class AudioSystem {
             }
         };
 
-        const completed = new Promise<Blob>((resolve, reject) => {
-            recorder.onerror = (event) => {
-                reject((event as ErrorEvent).error ?? new Error('MediaRecorder error.'));
+        const completed = new Promise<{ blob: Blob; mimeType: string; extension: string }>((resolve, reject) => {
+            recorder.onerror = (event: any) => {
+                reject(event.error ?? new Error('MediaRecorder error.'));
             };
-            recorder.onstop = () => resolve(new Blob(chunks, { type: supportedType }));
+            recorder.onstop = () => resolve({
+                blob: new Blob(chunks, { type: supportedType }),
+                mimeType: supportedType,
+                extension: selectedFormat!.extension
+            });
         });
 
         recorder.start();
