@@ -8,18 +8,17 @@ FrameOutput passthroughFallback(int16_t input, State&) {
     return {input, input};
 }
 
-constexpr EffectRunner kNoPrograms[] = {};
 
 const FamilyRegistry kMidiverb2Registry {
     Family::Midiverb2,
-    kNoPrograms,
+    nullptr,
     0,
     passthroughFallback,
 };
 
 const FamilyRegistry kMidifexRegistry {
     Family::Midifex,
-    kNoPrograms,
+    nullptr,
     0,
     passthroughFallback,
 };

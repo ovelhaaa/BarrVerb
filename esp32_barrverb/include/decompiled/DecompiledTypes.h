@@ -17,9 +17,8 @@ struct FrameOutput {
 struct State {
     int16_t* ram;
     uint16_t pointer;
-    int16_t accumulator;
-    int16_t lfo1;
-    int16_t lfo2;
+    uint32_t lfo1;
+    uint32_t lfo2;
 };
 
 using EffectRunner = FrameOutput (*)(int16_t input, State& state);

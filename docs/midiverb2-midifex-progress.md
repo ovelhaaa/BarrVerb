@@ -38,3 +38,13 @@
 - **Resumo técnico:** criada a estrutura base do backend decompilado no embarcado com contratos de tipos (família, estado, I/O por frame), interface de registry e implementação inicial com registries vazios e fallback seguro.
 - **Pendências/riscos:** os registries ainda não possuem adaptadores nem dispatch real por programa; integração com `decompiled-midiverb2.h` e `decompiled-midifex.h` permanece para as próximas tasks.
 - **Decisão:** inicializar fallback como passthrough estéreo para permitir integração incremental sem quebrar o fluxo de áudio durante a fase de scaffolding.
+
+## 2026-05-04 (ajuste pós-review da task de scaffolding embarcado)
+- **Contexto:** ajustes solicitados em review do scaffold do backend decompilado embarcado.
+- **Arquivos alterados:**
+  - `esp32_barrverb/include/decompiled/DecompiledTypes.h`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** removido `accumulator` de `State` por não representar estado persistente entre chamadas; atualizado tipo de `lfo1`/`lfo2` para `uint32_t` para preservar precisão esperada pelos efeitos decompilados; removido uso de array de tamanho zero e substituído por `nullptr` quando `programCount == 0`.
+- **Pendências/riscos:** assinatura dos adaptadores futuros deve manter coerência com `uint32_t` para LFO e com contrato de estado sem acumulador persistente.
+- **Decisão:** alinhar o contrato de estado embarcado ao comportamento real dos decompiled headers e evitar extensões não-portáveis de C++ no scaffold.
