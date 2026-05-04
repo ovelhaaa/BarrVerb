@@ -248,3 +248,26 @@ Avoid implicit “program number means different algorithm” without explicit f
 8. Add parity/golden vector test harness.
 9. Add UI/control exposure and docs.
 10. Final profiling + release QA.
+
+---
+
+## 11) Material de referência versionado no repositório
+
+Para acelerar a implementação e reduzir dependência externa em CI/dev, os arquivos essenciais da referência foram copiados para:
+
+- `third_party/midiverb_emulator/`
+
+Documentação da cópia e rastreabilidade:
+
+- `third_party/midiverb_emulator/IMPORT_NOTES.md`
+- `third_party/midiverb_emulator/LICENSE`
+
+Arquivos-base para o backend decompilado:
+
+- `decompiled-midiverb2.h`
+- `decompiled-midifex.h`
+- `names-midiverb2.h`
+- `names-midifex.h`
+- `rom.h`
+- `lfo.h`
+- `dasp16.h`
