@@ -5,11 +5,6 @@ export interface DecompiledFrameOutput {
   right: number;
 }
 
-export interface DecompiledEffectFrame {
-  input: number;
-  output: DecompiledFrameOutput;
-}
-
 export interface DecompiledState {
   ram: Int16Array;
   pointer: number;
@@ -17,7 +12,7 @@ export interface DecompiledState {
   lfo2: number;
 }
 
-export type DecompiledEffectRunner = (frame: DecompiledEffectFrame, state: DecompiledState) => void;
+export type DecompiledEffectRunner = (input: number, output: DecompiledFrameOutput, state: DecompiledState) => void;
 
 export interface DecompiledFamilyRegistry {
   family: DecompiledFamily;

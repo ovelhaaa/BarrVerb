@@ -60,3 +60,14 @@
 - **Resumo técnico:** o contrato de execução de efeito decompilado na Web foi alinhado ao formato comum de frame (entrada + saídas L/R mutáveis) e estado (RAM, ponteiro, LFO1/LFO2), removendo campo de acumulador persistente e ajustando fallbacks para assinatura in-place.
 - **Pendências/riscos:** o lado embarcado já estava aderente ao contrato equivalente, mas a integração dos adaptadores reais ainda precisa validar ranges numéricos e normalização entre `number` (Web) e `int16_t` (embarcado).
 - **Decisão:** padronizar `runner` como função com escrita in-place no frame para aproximar o contrato da assinatura de funções decompiladas e reduzir conversões na futura camada de adaptação.
+
+## 2026-05-04 (ajuste pós-review da interface comum Web)
+- **Contexto:** revisão solicitou alinhamento estrito do contrato Web com `DecompiledTypes.h` do embarcado e ajuste de fallback para evitar silêncio em efeitos não implementados.
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/types.ts`
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** removida a interface `DecompiledEffectFrame`; a assinatura do runner passou para `(input, output, state)` com `input` escalar e `output` mutável separado; fallbacks de ambas as famílias passaram de silêncio para passthrough estéreo (`L=R=input`).
+- **Pendências/riscos:** ainda falta validar o impacto de performance no loop final quando o dispatch real por programa for integrado.
+- **Decisão:** priorizar paridade semântica entre Web e embarcado no contrato da função de efeito para simplificar adaptadores e reduzir indireção no processamento por amostra.
