@@ -2,7 +2,7 @@
 
 > Referência obrigatória: **"Midiverb Emulator - arquivos copiados para implementação"**.
 >
-> Esta lista assume a existência/uso dos arquivos de referência copiados de `midiverb_emulator` (como `decompiled-midiverb2.h`, `decompiled-midifex.h`, `names-midiverb2.h`, `names-midifex.h`, `lfo.h`, `dasp16.h`, `rom.h`, `README.md`, `LICENSE`) e do plano em `docs/midiverb2-midifex-implementation-plan.md`.
+> Esta lista assume a existência/uso dos arquivos de referência copiados de `midiverb_emulator` (como `decompiled-midiverb2.h`, `decompiled-midifex.h`, `names-midiverb2.h`, `names-midifex.h`, `lfo.h`, `dasp16.h`, `rom.h`, `README.md`, `LICENSE`) .
 
 ## Epic 1 — Estrutura de backend DECOMPILED (Web + Embarcado)
 
@@ -70,4 +70,4 @@
 - [ ] MidiVerb II e MidiFex executando no backend `DECOMPILED`.
 - [ ] Presets nomeados corretamente com base em `names-midiverb2.h` e `names-midifex.h`.
 - [ ] Licenças e origem dos arquivos third_party documentadas.
-- [ ] Testes de regressão verdes para os presets definidos no plano.
+- [ ] Testes de regressão verdes para os presets definidos nesta checklist e/ou baseline de referência do projeto.
