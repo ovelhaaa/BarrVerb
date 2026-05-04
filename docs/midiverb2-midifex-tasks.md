@@ -6,7 +6,7 @@
 
 ## Epic 1 — Estrutura de backend DECOMPILED (Web + Embarcado)
 
-- [ ] Criar estrutura base do backend decompilado na Web em `barrverb-web/src/dsp/decompiled/`.
+- [x] Criar estrutura base do backend decompilado na Web em `barrverb-web/src/dsp/decompiled/`.
 - [ ] Criar estrutura base do backend decompilado no embarcado em `esp32_barrverb/src/decompiled/`.
 - [ ] Definir interface comum de execução de efeito (entrada, saída L/R, RAM, ponteiro, LFO1/LFO2).
 - [ ] Criar camada de seleção de engine: `INTERPRETER` vs `DECOMPILED`.
