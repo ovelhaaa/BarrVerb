@@ -16,6 +16,11 @@ class SVF {
 
 class BarrVerb {
    public:
+    enum class EngineType : uint8_t {
+        Interpreter = 0,
+        Decompiled = 1,
+    };
+
     BarrVerb();
     // Initialize things that might depend on sampling rate
     void setSampleRate(float sr);
@@ -27,6 +32,7 @@ class BarrVerb {
     void run(const int16_t *input, int16_t *output, uint32_t frames);
 
     void setProgram(uint8_t programIndex);
+    void setEngine(EngineType engineType);
     const char* getProgramName(uint8_t programIndex);
 
     // Public access for testing/debugging
@@ -58,6 +64,7 @@ class BarrVerb {
     // I'll use a scratch buffer for filter output if needed, or process sample-by-sample.
 
     uint8_t program;
+    EngineType engine = EngineType::Interpreter;
     float sampleRate = 44100.0f;
 };
 

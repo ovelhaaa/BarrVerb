@@ -51,6 +51,7 @@ export class BarrVerb {
     private currentProgram: Uint16Array;
 
     private sampleRate: number = 44100;
+    private engine: EngineType = "INTERPRETER";
 
     constructor() {
         this.f1 = new SVF();
@@ -64,6 +65,10 @@ export class BarrVerb {
         this.sampleRate = sr;
         this.f1.setFreq(5916.0, 0.6572, this.sampleRate);
         this.f2.setFreq(9458.0, 2.536, this.sampleRate);
+    }
+
+    setEngine(engine: EngineType) {
+        this.engine = engine;
     }
 
     /**
@@ -124,49 +129,63 @@ export class BarrVerb {
             let out_L = 0;
             let out_R = 0;
 
-            // --- DSP Loop (128 steps) ---
-            for (let step = 0; step < 128; step++) {
-                const opcode = l_prog[step];
+            if (this.engine === "DECOMPILED") {
+                const output = { left: 0, right: 0 };
+                const registry = getDecompiledRegistry("MIDIVERB_II");
+                const runner = registry.programs[0] ?? registry.fallback;
+                runner(dsp_in, output, {
+                    ram: l_ram,
+                    pointer: l_ptr,
+                    lfo1: 0,
+                    lfo2: 0,
+                });
+                out_L = output.left;
+                out_R = output.right;
+            } else {
+                // --- DSP Loop (128 steps) ---
+                for (let step = 0; step < 128; step++) {
+                    const opcode = l_prog[step];
 
-                // Check opcode top 2 bits
-                const op = opcode & 0xc000;
+                    // Check opcode top 2 bits
+                    const op = opcode & 0xc000;
 
-                if (op === 0x0000) {
-                    l_ai = l_ram[l_ptr];
-                    // Using bitwise arithmetic for integer behavior
-                    // In JS, >> is a 32-bit signed shift
-                    l_li = l_acc + (l_ai >> 1);
-                } else if (op === 0x4000) {
-                    l_ai = l_ram[l_ptr];
-                    l_li = (l_ai >> 1);
-                } else if (op === 0x8000) {
-                    l_ai = l_acc;
-                    l_ram[l_ptr] = l_ai;
-                    l_li = l_acc + (l_ai >> 1);
-                } else if (op === 0xc000) {
-                    l_ai = l_acc;
-                    l_ram[l_ptr] = -l_ai;
-                    l_li = -(l_ai >> 1);
+                    if (op === 0x0000) {
+                        l_ai = l_ram[l_ptr];
+                        // Using bitwise arithmetic for integer behavior
+                        // In JS, >> is a 32-bit signed shift
+                        l_li = l_acc + (l_ai >> 1);
+                    } else if (op === 0x4000) {
+                        l_ai = l_ram[l_ptr];
+                        l_li = (l_ai >> 1);
+                    } else if (op === 0x8000) {
+                        l_ai = l_acc;
+                        l_ram[l_ptr] = l_ai;
+                        l_li = l_acc + (l_ai >> 1);
+                    } else if (op === 0xc000) {
+                        l_ai = l_acc;
+                        l_ram[l_ptr] = -l_ai;
+                        l_li = -(l_ai >> 1);
+                    }
+
+                    // Clamp ai to 12-bit signed range (+/- 2047)
+                    if (l_ai > 2047) l_ai = 2047;
+                    else if (l_ai < -2047) l_ai = -2047;
+
+                    // Step-specific logic
+                    if (step === 0x00) {
+                        l_ram[l_ptr] = dsp_in;
+                    } else if (step === 0x60) {
+                        out_R = l_ai;
+                    } else if (step === 0x70) {
+                        out_L = l_ai;
+                    } else {
+                        l_acc = l_li;
+                    }
+
+                    // Update delay pointer
+                    l_ptr += opcode & 0x3fff;
+                    l_ptr &= 0x3fff;
                 }
-
-                // Clamp ai to 12-bit signed range (+/- 2047)
-                if (l_ai > 2047) l_ai = 2047;
-                else if (l_ai < -2047) l_ai = -2047;
-
-                // Step-specific logic
-                if (step === 0x00) {
-                    l_ram[l_ptr] = dsp_in;
-                } else if (step === 0x60) {
-                    out_R = l_ai;
-                } else if (step === 0x70) {
-                    out_L = l_ai;
-                } else {
-                    l_acc = l_li;
-                }
-
-                // Update delay pointer
-                l_ptr += opcode & 0x3fff;
-                l_ptr &= 0x3fff;
             }
 
             // Output scaling
@@ -194,3 +213,6 @@ export class BarrVerb {
         this.li = l_li;
     }
 }
+import { getDecompiledRegistry } from "./decompiled";
+
+export type EngineType = "INTERPRETER" | "DECOMPILED";

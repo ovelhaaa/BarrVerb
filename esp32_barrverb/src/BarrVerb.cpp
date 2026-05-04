@@ -1,4 +1,5 @@
 #include "BarrVerb.h"
+#include "decompiled/DecompiledRegistry.h"
 #include "rom.h"
 
 IRAM_ATTR void SVF::setFreq(float cutoff, float q, float samplerate) {
@@ -57,6 +58,10 @@ void BarrVerb::setProgram(uint8_t programIndex) {
     }
 }
 
+void BarrVerb::setEngine(EngineType engineType) {
+    engine = engineType;
+}
+
 const char* BarrVerb::getProgramName(uint8_t programIndex) {
     // prog_name is an array of const char* in PROGMEM?
     // In rom.h we defined it as const char* const prog_name[].
@@ -105,54 +110,68 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
         int16_t out_L = 0;
         int16_t out_R = 0;
 
-        // --- DSP Loop (128 steps) ---
-        for (uint8_t step = 0; step < 128; step++) {
-            // Read from RAM cache instead of Flash
-            uint16_t opcode = progPtr[step];
+        if (engine == EngineType::Decompiled) {
+            decompiled::State state {
+                ram,
+                l_ptr,
+                0,
+                0,
+            };
+            const decompiled::FamilyRegistry& registry = decompiled::getRegistry(decompiled::Family::Midiverb2);
+            decompiled::EffectRunner runner = registry.programCount > 0 ? registry.programs[0] : registry.fallback;
+            decompiled::FrameOutput out = runner(dsp_in, state);
+            out_L = out.left;
+            out_R = out.right;
+        } else {
+            // --- DSP Loop (128 steps) ---
+            for (uint8_t step = 0; step < 128; step++) {
+                // Read from RAM cache instead of Flash
+                uint16_t opcode = progPtr[step];
 
-            switch (opcode & 0xc000) {
-                case 0x0000:
-                    l_ai = ram[l_ptr];
-                    l_li = l_acc + (l_ai >> 1);
-                    break;
-                case 0x4000:
-                    l_ai = ram[l_ptr];
-                    l_li = (l_ai >> 1);
-                    break;
-                case 0x8000:
-                    l_ai = l_acc;
-                    ram[l_ptr] = l_ai;
-                    l_li = l_acc + (l_ai >> 1);
-                    break;
-                case 0xc000:
-                    l_ai = l_acc;
-                    ram[l_ptr] = -l_ai;
-                    l_li = -(l_ai >> 1);
-                    break;
+                switch (opcode & 0xc000) {
+                    case 0x0000:
+                        l_ai = ram[l_ptr];
+                        l_li = l_acc + (l_ai >> 1);
+                        break;
+                    case 0x4000:
+                        l_ai = ram[l_ptr];
+                        l_li = (l_ai >> 1);
+                        break;
+                    case 0x8000:
+                        l_ai = l_acc;
+                        ram[l_ptr] = l_ai;
+                        l_li = l_acc + (l_ai >> 1);
+                        break;
+                    case 0xc000:
+                        l_ai = l_acc;
+                        ram[l_ptr] = -l_ai;
+                        l_li = -(l_ai >> 1);
+                        break;
+                }
+
+                // Clamp ai to 12-bit range (+/- 2047)
+                if (l_ai > 2047) l_ai = 2047;
+                else if (l_ai < -2047) l_ai = -2047;
+
+                // Step-specific logic
+                if (step == 0x00) {
+                    // Load RAM with input
+                    ram[l_ptr] = dsp_in;
+                } else if (step == 0x60) {
+                    // Output Right
+                    out_R = l_ai;
+                } else if (step == 0x70) {
+                    // Output Left
+                    out_L = l_ai;
+                } else {
+                    // Latch accumulator
+                    l_acc = l_li;
+                }
+
+                // Update delay pointer
+                l_ptr += opcode & 0x3fff;
+                l_ptr &= 0x3fff;
             }
-
-            // Clamp ai to 12-bit range (+/- 2047)
-            if (l_ai > 2047) l_ai = 2047;
-            else if (l_ai < -2047) l_ai = -2047;
-
-            // Step-specific logic
-            if (step == 0x00) {
-                // Load RAM with input
-                ram[l_ptr] = dsp_in;
-            } else if (step == 0x60) {
-                // Output Right
-                out_R = l_ai;
-            } else if (step == 0x70) {
-                // Output Left
-                out_L = l_ai;
-            } else {
-                // Latch accumulator
-                l_acc = l_li;
-            }
-
-            // Update delay pointer
-            l_ptr += opcode & 0x3fff;
-            l_ptr &= 0x3fff;
         }
 
         // --- Output Processing ---

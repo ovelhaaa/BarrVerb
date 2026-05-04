@@ -71,3 +71,15 @@
 - **Resumo técnico:** removida a interface `DecompiledEffectFrame`; a assinatura do runner passou para `(input, output, state)` com `input` escalar e `output` mutável separado; fallbacks de ambas as famílias passaram de silêncio para passthrough estéreo (`L=R=input`).
 - **Pendências/riscos:** ainda falta validar o impacto de performance no loop final quando o dispatch real por programa for integrado.
 - **Decisão:** priorizar paridade semântica entre Web e embarcado no contrato da função de efeito para simplificar adaptadores e reduzir indireção no processamento por amostra.
+
+## 2026-05-04
+- **Task concluída:** `- [x] Criar camada de seleção de engine: \`INTERPRETER\` vs \`DECOMPILED\`.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/BarrVerb.ts`
+  - `esp32_barrverb/include/BarrVerb.h`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** adicionada seleção de engine em Web e embarcado com enum/tipo explícito, setter dedicado e dispatch no loop de processamento entre caminho `INTERPRETER` existente e caminho `DECOMPILED` inicial (usando fallback seguro do registry).
+- **Pendências/riscos:** o caminho `DECOMPILED` ainda usa família fixa (MidiVerb II) e fallback de programa enquanto as tasks de seleção de família e adaptadores reais não forem concluídas.
+- **Decisão:** manter `INTERPRETER` como padrão para preservar comportamento atual e introduzir dispatch de engine com impacto mínimo no fluxo existente.
