@@ -48,3 +48,26 @@
 - **Resumo técnico:** removido `accumulator` de `State` por não representar estado persistente entre chamadas; atualizado tipo de `lfo1`/`lfo2` para `uint32_t` para preservar precisão esperada pelos efeitos decompilados; removido uso de array de tamanho zero e substituído por `nullptr` quando `programCount == 0`.
 - **Pendências/riscos:** assinatura dos adaptadores futuros deve manter coerência com `uint32_t` para LFO e com contrato de estado sem acumulador persistente.
 - **Decisão:** alinhar o contrato de estado embarcado ao comportamento real dos decompiled headers e evitar extensões não-portáveis de C++ no scaffold.
+
+## 2026-05-04
+- **Task concluída:** `- [x] Definir interface comum de execução de efeito (entrada, saída L/R, RAM, ponteiro, LFO1/LFO2).`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/types.ts`
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** o contrato de execução de efeito decompilado na Web foi alinhado ao formato comum de frame (entrada + saídas L/R mutáveis) e estado (RAM, ponteiro, LFO1/LFO2), removendo campo de acumulador persistente e ajustando fallbacks para assinatura in-place.
+- **Pendências/riscos:** o lado embarcado já estava aderente ao contrato equivalente, mas a integração dos adaptadores reais ainda precisa validar ranges numéricos e normalização entre `number` (Web) e `int16_t` (embarcado).
+- **Decisão:** padronizar `runner` como função com escrita in-place no frame para aproximar o contrato da assinatura de funções decompiladas e reduzir conversões na futura camada de adaptação.
+
+## 2026-05-04 (ajuste pós-review da interface comum Web)
+- **Contexto:** revisão solicitou alinhamento estrito do contrato Web com `DecompiledTypes.h` do embarcado e ajuste de fallback para evitar silêncio em efeitos não implementados.
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/types.ts`
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** removida a interface `DecompiledEffectFrame`; a assinatura do runner passou para `(input, output, state)` com `input` escalar e `output` mutável separado; fallbacks de ambas as famílias passaram de silêncio para passthrough estéreo (`L=R=input`).
+- **Pendências/riscos:** ainda falta validar o impacto de performance no loop final quando o dispatch real por programa for integrado.
+- **Decisão:** priorizar paridade semântica entre Web e embarcado no contrato da função de efeito para simplificar adaptadores e reduzir indireção no processamento por amostra.

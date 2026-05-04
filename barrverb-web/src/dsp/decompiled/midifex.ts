@@ -1,9 +1,9 @@
 import type { DecompiledEffectRunner, DecompiledFamilyRegistry } from "./types";
 
-const notImplemented: DecompiledEffectRunner = (_input, _state) => ({
-  outputL: 0,
-  outputR: 0,
-});
+const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
+  output.left = input;
+  output.right = input;
+};
 
 export const midifexRegistry: DecompiledFamilyRegistry = {
   family: "MIDIFEX",
