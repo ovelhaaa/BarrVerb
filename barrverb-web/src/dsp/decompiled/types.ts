@@ -9,6 +9,7 @@ export interface DecompiledFrameIO {
 export interface DecompiledState {
   ram: Int16Array;
   pointer: number;
+  accumulator: number;
   lfo1: number;
   lfo2: number;
 }
