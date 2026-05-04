@@ -18,7 +18,7 @@ It assumes reuse of the decompiled effect entry points from the reference implem
   - `MIDIVERB2`
   - `MIDIFEX`
 - Preserve existing BarrVerb behavior as default (no regression path).
-- Allow program selection (`0..63`) independent from family/backend.
+- Allow program selection (`0..99`) independent from family/backend.
 
 ### Non-goals (phase 1)
 - Exact UI clone of original hardware front panels.
@@ -59,7 +59,7 @@ Internally, the process path becomes:
 
 Define a state struct/class used by both backends:
 
-- delay RAM (16k base assumption)
+- delay RAM (64k base assumption)
 - read/write pointers
 - accumulator/scratch registers
 - modulation values (`lfo1_value`, `lfo2_value`)
@@ -144,7 +144,7 @@ This is where most portability bugs are isolated.
 ### 5.2 Performance and memory constraints
 
 - Store effect registries in flash/`const` tables.
-- Keep RAM footprint bounded (16k delay + existing scratch).
+- Keep RAM footprint bounded (64k delay + existing scratch).
 - Benchmark CPU usage by engine/family (worst-case program).
 
 ### 5.3 Control path
