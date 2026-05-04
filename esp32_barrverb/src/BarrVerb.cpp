@@ -118,10 +118,11 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
                 0,
             };
             const decompiled::FamilyRegistry& registry = decompiled::getRegistry(decompiled::Family::Midiverb2);
-            decompiled::EffectRunner runner = registry.programCount > 0 ? registry.programs[0] : registry.fallback;
+            decompiled::EffectRunner runner = (program < registry.programCount) ? registry.programs[program] : registry.fallback;
             decompiled::FrameOutput out = runner(dsp_in, state);
             out_L = out.left;
             out_R = out.right;
+            l_ptr = state.pointer & 0x3fff;
         } else {
             // --- DSP Loop (128 steps) ---
             for (uint8_t step = 0; step < 128; step++) {

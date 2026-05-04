@@ -52,6 +52,7 @@ export class BarrVerb {
 
     private sampleRate: number = 44100;
     private engine: EngineType = "INTERPRETER";
+    private programIndex: number = 0;
 
     constructor() {
         this.f1 = new SVF();
@@ -77,7 +78,8 @@ export class BarrVerb {
      * @param programIndex The index of the program (0-63)
      */
     setProgram(rom: Uint16Array, programIndex: number) {
-        const prog_offset = (programIndex & 0x3f) << 7; // * 128
+        this.programIndex = programIndex & 0x3f;
+        const prog_offset = this.programIndex << 7; // * 128
 
         for (let i = 0; i < 128; i++) {
             this.currentProgram[i] = rom[prog_offset + i];
@@ -132,15 +134,17 @@ export class BarrVerb {
             if (this.engine === "DECOMPILED") {
                 const output = { left: 0, right: 0 };
                 const registry = getDecompiledRegistry("MIDIVERB_II");
-                const runner = registry.programs[0] ?? registry.fallback;
-                runner(dsp_in, output, {
+                const runner = registry.programs[this.programIndex] ?? registry.fallback;
+                const state = {
                     ram: l_ram,
                     pointer: l_ptr,
                     lfo1: 0,
                     lfo2: 0,
-                });
+                };
+                runner(dsp_in, output, state);
                 out_L = output.left;
                 out_R = output.right;
+                l_ptr = state.pointer & 0x3fff;
             } else {
                 // --- DSP Loop (128 steps) ---
                 for (let step = 0; step < 128; step++) {

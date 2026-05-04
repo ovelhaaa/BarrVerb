@@ -83,3 +83,13 @@
 - **Resumo técnico:** adicionada seleção de engine em Web e embarcado com enum/tipo explícito, setter dedicado e dispatch no loop de processamento entre caminho `INTERPRETER` existente e caminho `DECOMPILED` inicial (usando fallback seguro do registry).
 - **Pendências/riscos:** o caminho `DECOMPILED` ainda usa família fixa (MidiVerb II) e fallback de programa enquanto as tasks de seleção de família e adaptadores reais não forem concluídas.
 - **Decisão:** manter `INTERPRETER` como padrão para preservar comportamento atual e introduzir dispatch de engine com impacto mínimo no fluxo existente.
+
+## 2026-05-04 (ajuste pós-review da seleção de engine)
+- **Contexto:** correção de bugs apontados em review na rota `DECOMPILED`.
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/BarrVerb.ts`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** sincronizado o ponteiro de delay após execução de runner decompilado (`l_ptr = state.pointer & 0x3fff`) em Web e embarcado; no embarcado o runner passou a usar o índice de `program` ativo em vez de índice fixo; na Web foi adicionado `programIndex` persistente para selecionar runner consistente no backend decompilado.
+- **Pendências/riscos:** seleção de família ainda está pendente, portanto a rota decompilada continua fixa em registry de MidiVerb II até a próxima task.
+- **Decisão:** tratar `state.pointer` como estado mutável canônico do backend decompilado e sempre fazer sync explícito para o ponteiro local.
