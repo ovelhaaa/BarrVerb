@@ -37,7 +37,7 @@ FrameOutput runAdaptedMidiverb2Effect(
     int16_t outRight = 0;
 
     effect(
-        clampInt16(input),
+        input,
         &outLeft,
         &outRight,
         state.ram,
