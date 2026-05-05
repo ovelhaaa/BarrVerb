@@ -114,3 +114,22 @@
 - **Resumo técnico:** corrigido o adaptador para garantir estado local por chamada (`left`/`right` alocados dentro do runner), avanço explícito do `state.pointer` em `+140` por chamada com máscara de DRAM e correção de clamp `int16` sem wrap de 32 bits antes do limite.
 - **Pendências/riscos:** a tabela completa de dispatch de programas (`0..99`) permanece pendente da task específica.
 - **Decisão:** manter constantes nomeadas para offsets/máscaras/incremento do `effect_0` e do avanço de ponteiro para reduzir números mágicos e facilitar manutenção.
+
+## 2026-05-05
+- **Task concluída:** `- [x] Implementar adaptador para funções de `decompiled-midiverb2.h` no backend embarcado.`
+- **Arquivos alterados:**
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** implementada camada adaptadora no embarcado para assinatura estilo `decompiled-midiverb2.h`, incluindo clamp `int16`, passagem de `ram/pointer/lfo1/lfo2`, avanço de ponteiro com máscara (`+140`), e integração inicial do programa 0 (defeat) via registry de MidiVerb II.
+- **Pendências/riscos:** apenas o programa 0 está conectado ao adapter; ainda faltam nomes de programas e tabela completa de dispatch por programa para concluir a integração da família MidiVerb II.
+- **Decisão:** manter o adaptador genérico (`runAdaptedMidiverb2Effect`) separado do programa específico para reutilização quando os demais efeitos decompilados forem adicionados.
+
+## 2026-05-05 (follow-up review: simplificação de ponteiro DRAM)
+- **Contexto:** ajuste solicitado em review do adaptador MidiVerb II embarcado.
+- **Arquivos alterados:**
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** removido `reinterpret_cast` desnecessário ao passar `state.ram` para a função de efeito C-style; `state.ram` (`int16_t*`) já é compatível com o parâmetro `int16_t dram[0x4000]` (decai para `int16_t*`).
+- **Pendências/riscos:** sem impacto funcional esperado; mudança é de simplificação/clareza e reduz complexidade de leitura.
+- **Decisão:** preferir passagem direta de ponteiros quando a assinatura efetiva já é compatível após decay de array.
