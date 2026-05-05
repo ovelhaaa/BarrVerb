@@ -150,3 +150,14 @@
 - **Resumo técnico (curto):** integração dos nomes de programas do MidiVerb II (100 entradas) a partir da referência `names-midiverb2.h`, com publicação no registry Web (`programNames`) e no registry embarcado (`programNames` + `programNameCount`) para permitir consulta consistente por família.
 - **Pendências/riscos:** os nomes foram integrados, mas ainda não existe tabela completa de dispatch de programas MidiVerb II; portanto a execução continua efetivamente limitada aos programas atualmente registrados no runner.
 - **Decisão:** centralizar os nomes em arquivos dedicados por alvo (`midiverb2ProgramNames.ts` e `Midiverb2ProgramNames.h`) para manter rastreabilidade direta com o material em `third_party` e facilitar reuso em UI/controle sem acoplar ao dispatch.
+
+## 2026-05-05
+- **Task concluída:** `- [x] Criar tabela de dispatch por programa para MidiVerb II.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** criada tabela de dispatch por programa para MidiVerb II nos dois targets com 100 entradas indexadas pelos nomes de programa; programa 0 foi ligado ao runner adaptado existente e os demais índices ficam mapeados para fallback seguro (passthrough) até integração dos efeitos correspondentes.
+- **Pendências/riscos:** a cobertura funcional de efeitos ainda está limitada ao programa 0; os demais programas já têm endereço estável na tabela, mas executam fallback até as próximas tasks de integração completa e normalização.
+- **Decisão:** usar o tamanho de `names-midiverb2` como fonte canônica da cardinalidade da tabela para evitar divergência de contagem entre Web e embarcado.

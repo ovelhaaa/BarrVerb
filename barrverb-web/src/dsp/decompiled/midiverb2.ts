@@ -55,8 +55,7 @@ const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
   output.right = input;
 };
 
-// Primeira integração de adaptador usando a assinatura de `decompiled-midiverb2.h`.
-// A tabela completa de programas será integrada na tarefa específica de dispatch.
+// Adaptador usando a assinatura de `decompiled-midiverb2.h` (programa 0 implementado).
 const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
   _input,
   outLeft,
@@ -73,7 +72,12 @@ const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
 
 export const midiverb2Registry: DecompiledFamilyRegistry = {
   family: "MIDIVERB_II",
-  programs: [adaptMidiverb2Effect(midiverb2Effect0Defeat)],
+  programs: (() => {
+    const effect0Runner = adaptMidiverb2Effect(midiverb2Effect0Defeat);
+    const table: DecompiledEffectRunner[] = Array.from({ length: midiverb2ProgramNames.length }, () => notImplemented);
+    table[0] = effect0Runner;
+    return table;
+  })(),
   programNames: midiverb2ProgramNames,
   fallback: notImplemented,
 };

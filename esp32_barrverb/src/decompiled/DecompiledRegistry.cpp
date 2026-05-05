@@ -1,3 +1,4 @@
+#include <array>
 #include "decompiled/DecompiledRegistry.h"
 #include "decompiled/Midiverb2ProgramNames.h"
 
@@ -10,12 +11,6 @@ constexpr uint16_t kMidiverb2PointerIncrement = 140;
 constexpr uint16_t kMidiverb2Effect0WriteAddress = 140;
 constexpr uint16_t kMidiverb2Effect0LeftReadOffset = 135;
 constexpr uint16_t kMidiverb2Effect0RightReadOffset = 137;
-
-inline int16_t clampInt16(int32_t value) {
-    if (value > INT16_MAX) return INT16_MAX;
-    if (value < INT16_MIN) return INT16_MIN;
-    return static_cast<int16_t>(value);
-}
 
 FrameOutput passthroughFallback(int16_t input, State&) {
     return {input, input};
@@ -68,14 +63,19 @@ FrameOutput runMidiverb2Program0(int16_t input, State& state) {
     return runAdaptedMidiverb2Effect(midiverb2Effect0Defeat, input, state);
 }
 
-const EffectRunner kMidiverb2Programs[] = {
-    runMidiverb2Program0,
-};
+std::array<EffectRunner, kMidiverb2ProgramNameCount> createMidiverb2DispatchTable() {
+    std::array<EffectRunner, kMidiverb2ProgramNameCount> table {};
+    table.fill(passthroughFallback);
+    table[0] = runMidiverb2Program0;
+    return table;
+}
+
+const auto kMidiverb2DispatchTable = createMidiverb2DispatchTable();
 
 const FamilyRegistry kMidiverb2Registry {
     Family::Midiverb2,
-    kMidiverb2Programs,
-    static_cast<uint16_t>(sizeof(kMidiverb2Programs) / sizeof(kMidiverb2Programs[0])),
+    kMidiverb2DispatchTable.data(),
+    static_cast<uint16_t>(kMidiverb2DispatchTable.size()),
     kMidiverb2ProgramNames,
     static_cast<uint16_t>(kMidiverb2ProgramNameCount),
     passthroughFallback,
