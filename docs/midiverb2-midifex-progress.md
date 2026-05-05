@@ -185,7 +185,7 @@
 - **Pendências/riscos:** permanece necessário validar paridade Web/embarcado com harness dedicado quando as tasks de testes cruzados forem implementadas.
 - **Decisão:** preservar a semântica histórica de cast para `int16` na entrada do DSP (`dsp_in`) para evitar regressão sonora no caminho `INTERPRETER` e manter paridade de quantização entre engines.
 
-## 2026-05-05
+## 2026-05-05 (adaptador MidiFex Web)
 - **Task concluída:** `- [x] Implementar adaptador para funções de `decompiled-midifex.h` no backend web.`
 - **Arquivos alterados:**
   - `barrverb-web/src/dsp/decompiled/midifex.ts`
