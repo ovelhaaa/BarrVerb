@@ -17,5 +17,6 @@ export type DecompiledEffectRunner = (input: number, output: DecompiledFrameOutp
 export interface DecompiledFamilyRegistry {
   family: DecompiledFamily;
   programs: DecompiledEffectRunner[];
+  programNames: readonly string[];
   fallback: DecompiledEffectRunner;
 }

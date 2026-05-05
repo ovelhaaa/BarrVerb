@@ -1,4 +1,5 @@
 #include "decompiled/DecompiledRegistry.h"
+#include "decompiled/Midiverb2ProgramNames.h"
 
 namespace decompiled {
 
@@ -75,11 +76,15 @@ const FamilyRegistry kMidiverb2Registry {
     Family::Midiverb2,
     kMidiverb2Programs,
     static_cast<uint16_t>(sizeof(kMidiverb2Programs) / sizeof(kMidiverb2Programs[0])),
+    kMidiverb2ProgramNames,
+    static_cast<uint16_t>(kMidiverb2ProgramNameCount),
     passthroughFallback,
 };
 
 const FamilyRegistry kMidifexRegistry {
     Family::Midifex,
+    nullptr,
+    0,
     nullptr,
     0,
     passthroughFallback,

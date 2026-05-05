@@ -27,6 +27,8 @@ struct FamilyRegistry {
     Family family;
     const EffectRunner* programs;
     uint16_t programCount;
+    const char* const* programNames;
+    uint16_t programNameCount;
     EffectRunner fallback;
 };
 

@@ -133,3 +133,20 @@
 - **Resumo técnico:** removido `reinterpret_cast` desnecessário ao passar `state.ram` para a função de efeito C-style; `state.ram` (`int16_t*`) já é compatível com o parâmetro `int16_t dram[0x4000]` (decai para `int16_t*`).
 - **Pendências/riscos:** sem impacto funcional esperado; mudança é de simplificação/clareza e reduz complexidade de leitura.
 - **Decisão:** preferir passagem direta de ponteiros quando a assinatura efetiva já é compatível após decay de array.
+
+## 2026-05-05
+- **Task concluída:** `- [x] Integrar nomes de programas a partir de `names-midiverb2.h`.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midiverb2ProgramNames.ts`
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `barrverb-web/src/dsp/decompiled/types.ts`
+  - `barrverb-web/src/dsp/decompiled/index.ts`
+  - `esp32_barrverb/include/decompiled/Midiverb2ProgramNames.h`
+  - `esp32_barrverb/include/decompiled/DecompiledTypes.h`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** integração dos nomes de programas do MidiVerb II (100 entradas) a partir da referência `names-midiverb2.h`, com publicação no registry Web (`programNames`) e no registry embarcado (`programNames` + `programNameCount`) para permitir consulta consistente por família.
+- **Pendências/riscos:** os nomes foram integrados, mas ainda não existe tabela completa de dispatch de programas MidiVerb II; portanto a execução continua efetivamente limitada aos programas atualmente registrados no runner.
+- **Decisão:** centralizar os nomes em arquivos dedicados por alvo (`midiverb2ProgramNames.ts` e `Midiverb2ProgramNames.h`) para manter rastreabilidade direta com o material em `third_party` e facilitar reuso em UI/controle sem acoplar ao dispatch.
