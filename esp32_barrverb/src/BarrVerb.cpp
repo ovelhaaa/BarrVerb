@@ -123,7 +123,7 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
 
         // Prepare input for DSP engine
         // Scale factor 2048 matches original code.
-        const int16_t dsp_in = clampInt16FromInt32(static_cast<int32_t>(lroundf(lp1 * 2048.0f)));
+        const int16_t dsp_in = clampInt16FromInt32(static_cast<int32_t>(lp1 * 2048.0f));
 
         int16_t out_L = 0;
         int16_t out_R = 0;
@@ -136,8 +136,8 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
                 0,
             };
             decompiled::FrameOutput out = runner(dsp_in, state);
-            out_L = clampInt16FromInt32(out.left);
-            out_R = clampInt16FromInt32(out.right);
+            out_L = out.left;
+            out_R = out.right;
             l_ptr = state.pointer & 0x3fff;
         } else {
             // --- DSP Loop (128 steps) ---

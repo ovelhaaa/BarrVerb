@@ -173,3 +173,14 @@
 - **Resumo técnico (curto):** aplicado clamp `int16` explícito e consistente no caminho decompilado para entrada (`dsp_in`) e saídas (`out_L/out_R`) em Web e embarcado, evitando wrap/truncamentos implícitos e mantendo faixa numérica equivalente ao core atual.
 - **Pendências/riscos:** a normalização foi garantida no núcleo DSP; ainda faltam tasks de integração MidiFex e de validação cruzada por baseline para cobrir toda a matriz de programas/famílias.
 - **Decisão:** centralizar clamp em helpers locais por alvo (`clampInt16`) para reduzir duplicação e prevenir divergências futuras entre os caminhos `INTERPRETER` e `DECOMPILED`.
+
+
+## 2026-05-05 (ajuste pós-review da normalização/clamp)
+- **Contexto:** revisão apontou divergência de arredondamento entre Web (`Math.round`) e ESP32 (`lroundf`) e mudança não intencional de quantização do `dsp_in` no caminho compartilhado do core.
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/BarrVerb.ts`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** restaurada a quantização por truncamento em direção a zero para `dsp_in` nos dois targets com clamp `int16` consistente; removido arredondamento/clamp redundante das saídas decompiladas no loop de áudio, mantendo consumo direto de `out` já tipado/int16 pelos runners.
+- **Pendências/riscos:** permanece necessário validar paridade Web/embarcado com harness dedicado quando as tasks de testes cruzados forem implementadas.
+- **Decisão:** preservar a semântica histórica de cast para `int16` na entrada do DSP (`dsp_in`) para evitar regressão sonora no caminho `INTERPRETER` e manter paridade de quantização entre engines.

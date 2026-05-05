@@ -148,7 +148,7 @@ export class BarrVerb {
 
             // Prepare DSP input.
             // Original: dsp_in = (int16_t)(lp1 * 2048.0f)
-            const dsp_in = BarrVerb.clampInt16(Math.round(lp1 * 2048.0));
+            const dsp_in = BarrVerb.clampInt16(lp1 * 2048.0);
 
             let out_L = 0;
             let out_R = 0;
@@ -158,8 +158,8 @@ export class BarrVerb {
                 decompiledOutput.right = 0;
                 decompiledState.pointer = l_ptr;
                 runner!(dsp_in, decompiledOutput, decompiledState);
-                out_L = BarrVerb.clampInt16(Math.round(decompiledOutput.left));
-                out_R = BarrVerb.clampInt16(Math.round(decompiledOutput.right));
+                out_L = decompiledOutput.left;
+                out_R = decompiledOutput.right;
                 l_ptr = decompiledState.pointer & 0x3fff;
             } else {
                 // --- DSP Loop (128 steps) ---
