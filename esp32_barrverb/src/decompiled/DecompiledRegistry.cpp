@@ -47,7 +47,7 @@ FrameOutput runAdaptedMidiverb2Effect(
 
     state.pointer = (state.pointer + kMidiverb2PointerIncrement) & kDramMask;
 
-    return {clampInt16(outLeft), clampInt16(outRight)};
+    return {outLeft, outRight};
 }
 
 void midiverb2Effect0Defeat(
