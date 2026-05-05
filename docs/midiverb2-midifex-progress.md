@@ -161,3 +161,15 @@
 - **Resumo técnico (curto):** criada tabela de dispatch por programa para MidiVerb II nos dois targets com 100 entradas indexadas pelos nomes de programa; programa 0 foi ligado ao runner adaptado existente e os demais índices ficam mapeados para fallback seguro (passthrough) até integração dos efeitos correspondentes.
 - **Pendências/riscos:** a cobertura funcional de efeitos ainda está limitada ao programa 0; os demais programas já têm endereço estável na tabela, mas executam fallback até as próximas tasks de integração completa e normalização.
 - **Decisão:** usar o tamanho de `names-midiverb2` como fonte canônica da cardinalidade da tabela para evitar divergência de contagem entre Web e embarcado.
+
+
+## 2026-05-05
+- **Task concluída:** `- [x] Garantir normalização/clamp de entrada e saída compatível com o core atual.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/BarrVerb.ts`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** aplicado clamp `int16` explícito e consistente no caminho decompilado para entrada (`dsp_in`) e saídas (`out_L/out_R`) em Web e embarcado, evitando wrap/truncamentos implícitos e mantendo faixa numérica equivalente ao core atual.
+- **Pendências/riscos:** a normalização foi garantida no núcleo DSP; ainda faltam tasks de integração MidiFex e de validação cruzada por baseline para cobrir toda a matriz de programas/famílias.
+- **Decisão:** centralizar clamp em helpers locais por alvo (`clampInt16`) para reduzir duplicação e prevenir divergências futuras entre os caminhos `INTERPRETER` e `DECOMPILED`.
