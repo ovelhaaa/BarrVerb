@@ -184,3 +184,13 @@
 - **Resumo técnico:** restaurada a quantização por truncamento em direção a zero para `dsp_in` nos dois targets com clamp `int16` consistente; removido arredondamento/clamp redundante das saídas decompiladas no loop de áudio, mantendo consumo direto de `out` já tipado/int16 pelos runners.
 - **Pendências/riscos:** permanece necessário validar paridade Web/embarcado com harness dedicado quando as tasks de testes cruzados forem implementadas.
 - **Decisão:** preservar a semântica histórica de cast para `int16` na entrada do DSP (`dsp_in`) para evitar regressão sonora no caminho `INTERPRETER` e manter paridade de quantização entre engines.
+
+## 2026-05-05
+- **Task concluída:** `- [x] Implementar adaptador para funções de `decompiled-midifex.h` no backend web.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** implementado adaptador Web para assinatura C-style de efeitos MidiFex (`input`, `out_left`, `out_right`, `DRAM`, `ptr`, `lfo1`, `lfo2`), com clamp explícito para `int16`, máscara de ponteiro DRAM (`0x3fff`) e avanço de ponteiro por chamada (`+140`), deixando o registry pronto para receber funções reais do `decompiled-midifex.h` nas próximas tasks.
+- **Pendências/riscos:** ainda não há integração da tabela de dispatch nem nomes de programas MidiFex; o fallback passthrough permanece ativo até as próximas tasks do Epic 3.
+- **Decisão:** manter o adaptador MidiFex desacoplado da tabela de programas para permitir integração incremental dos efeitos sem alterar o contrato do backend decompilado.
