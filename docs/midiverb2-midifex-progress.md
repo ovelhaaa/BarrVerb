@@ -1,6 +1,6 @@
 # Progresso de Implementação — MidiVerb II e MidiFex
 
-## 2026-05-04
+## 2026-05-04 (seleção de família de efeitos)
 - **Task concluída:** `- [x] Criar estrutura base do backend decompilado na Web em \`barrverb-web/src/dsp/decompiled/\`.`
 - **Arquivos alterados:**
   - `barrverb-web/src/dsp/decompiled/README.md`
@@ -94,7 +94,7 @@
 - **Pendências/riscos:** seleção de família ainda está pendente, portanto a rota decompilada continua fixa em registry de MidiVerb II até a próxima task.
 - **Decisão:** tratar `state.pointer` como estado mutável canônico do backend decompilado e sempre fazer sync explícito para o ponteiro local.
 
-## 2026-05-04
+## 2026-05-04 (seleção de família de efeitos - conclusão da task)
 - **Task concluída:** `- [x] Criar camada de seleção de família: \`MIDIVERB_II\` vs \`MIDIFEX\`.`
 - **Arquivos alterados:**
   - `barrverb-web/src/dsp/BarrVerb.ts`
