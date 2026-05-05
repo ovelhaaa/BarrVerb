@@ -15,27 +15,34 @@ type Midiverb2CStyleEffect = (
   lfo2Value: number,
 ) => void;
 
+const DRAM_MASK = 0x3fff;
+const MIDIVERB2_POINTER_INCREMENT = 140;
+const MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
+const MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
+const MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET = 137;
+
 const toInt16 = (value: number): number => {
-  const truncated = value | 0;
-  if (truncated > 32767) return 32767;
-  if (truncated < -32768) return -32768;
-  return truncated;
+  if (value > 32767) return 32767;
+  if (value < -32768) return -32768;
+  return value | 0;
 };
 
 const adaptMidiverb2Effect = (effect: Midiverb2CStyleEffect): DecompiledEffectRunner => {
-  const left = { value: 0 };
-  const right = { value: 0 };
-
   return (input: number, output: DecompiledFrameOutput, state: DecompiledState) => {
+    const left = { value: 0 };
+    const right = { value: 0 };
+
     effect(
       toInt16(input),
       left,
       right,
       state.ram,
-      state.pointer & 0x3fff,
+      state.pointer & DRAM_MASK,
       state.lfo1 >>> 0,
       state.lfo2 >>> 0,
     );
+
+    state.pointer = (state.pointer + MIDIVERB2_POINTER_INCREMENT) & DRAM_MASK;
 
     output.left = toInt16(left.value);
     output.right = toInt16(right.value);
@@ -58,9 +65,9 @@ const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
   _lfo1Value,
   _lfo2Value,
 ) => {
-  outLeft.value = dram[(pointer + 140 - 135) & 0x3fff];
-  outRight.value = dram[(pointer + 140 - 137) & 0x3fff];
-  dram[(pointer + 140) & 0x3fff] = 0;
+  outLeft.value = dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_LEFT_READ_OFFSET) & DRAM_MASK];
+  outRight.value = dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET) & DRAM_MASK];
+  dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS) & DRAM_MASK] = 0;
 };
 
 export const midiverb2Registry: DecompiledFamilyRegistry = {
