@@ -93,3 +93,15 @@
 - **Resumo técnico:** sincronizado o ponteiro de delay após execução de runner decompilado (`l_ptr = state.pointer & 0x3fff`) em Web e embarcado; no embarcado o runner passou a usar o índice de `program` ativo em vez de índice fixo; na Web foi adicionado `programIndex` persistente para selecionar runner consistente no backend decompilado.
 - **Pendências/riscos:** seleção de família ainda está pendente, portanto a rota decompilada continua fixa em registry de MidiVerb II até a próxima task.
 - **Decisão:** tratar `state.pointer` como estado mutável canônico do backend decompilado e sempre fazer sync explícito para o ponteiro local.
+
+## 2026-05-04
+- **Task concluída:** `- [x] Criar camada de seleção de família: \`MIDIVERB_II\` vs \`MIDIFEX\`.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/BarrVerb.ts`
+  - `esp32_barrverb/include/BarrVerb.h`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** adicionada seleção explícita de família de efeitos nos dois targets com estado dedicado e setter (`setFamily`), além de dispatch do backend decompilado por família no loop de áudio.
+- **Pendências/riscos:** a seleção de família foi implementada no core DSP, mas ainda não foi exposta na camada de UI/worklet/controle; isso será coberto pelas tasks de integração de controle.
+- **Decisão:** manter `MIDIVERB_II`/`Midiverb2` como família padrão para preservar comportamento atual do caminho decompilado quando nenhuma seleção for enviada externamente.

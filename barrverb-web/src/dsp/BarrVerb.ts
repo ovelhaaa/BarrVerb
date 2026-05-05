@@ -52,6 +52,7 @@ export class BarrVerb {
 
     private sampleRate: number = 44100;
     private engine: EngineType = "INTERPRETER";
+    private family: EffectFamily = "MIDIVERB_II";
     private programIndex: number = 0;
 
     constructor() {
@@ -70,6 +71,10 @@ export class BarrVerb {
 
     setEngine(engine: EngineType) {
         this.engine = engine;
+    }
+
+    setFamily(family: EffectFamily) {
+        this.family = family;
     }
 
     /**
@@ -133,7 +138,7 @@ export class BarrVerb {
 
             if (this.engine === "DECOMPILED") {
                 const output = { left: 0, right: 0 };
-                const registry = getDecompiledRegistry("MIDIVERB_II");
+                const registry = getDecompiledRegistry(this.family);
                 const runner = registry.programs[this.programIndex] ?? registry.fallback;
                 const state = {
                     ram: l_ram,
@@ -220,3 +225,4 @@ export class BarrVerb {
 import { getDecompiledRegistry } from "./decompiled";
 
 export type EngineType = "INTERPRETER" | "DECOMPILED";
+export type EffectFamily = "MIDIVERB_II" | "MIDIFEX";
