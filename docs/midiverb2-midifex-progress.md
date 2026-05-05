@@ -105,3 +105,12 @@
 - **Resumo técnico:** adicionada seleção explícita de família de efeitos nos dois targets com estado dedicado e setter (`setFamily`), além de dispatch do backend decompilado por família no loop de áudio.
 - **Pendências/riscos:** a seleção de família foi implementada no core DSP, mas ainda não foi exposta na camada de UI/worklet/controle; isso será coberto pelas tasks de integração de controle.
 - **Decisão:** manter `MIDIVERB_II`/`Midiverb2` como família padrão para preservar comportamento atual do caminho decompilado quando nenhuma seleção for enviada externamente.
+
+## 2026-05-05 (ajuste pós-review do adaptador MidiVerb II Web)
+- **Task ajustada:** `- [x] Implementar adaptador para funções de \`decompiled-midiverb2.h\` no backend web.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:** corrigido o adaptador para garantir estado local por chamada (`left`/`right` alocados dentro do runner), avanço explícito do `state.pointer` em `+140` por chamada com máscara de DRAM e correção de clamp `int16` sem wrap de 32 bits antes do limite.
+- **Pendências/riscos:** a tabela completa de dispatch de programas (`0..99`) permanece pendente da task específica.
+- **Decisão:** manter constantes nomeadas para offsets/máscaras/incremento do `effect_0` e do avanço de ponteiro para reduzir números mágicos e facilitar manutenção.
