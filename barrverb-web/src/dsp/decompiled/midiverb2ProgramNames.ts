@@ -18,7 +18,7 @@ export const midiverb2ProgramNames = [
   "Medium Bright 1.15 Sec",
   "Large Bright 1.6 Sec",
   "Large Dark 1.7 Sec",
-  "Medum Bright 1.65 Sec",
+  "Medium Bright 1.65 Sec",
   "Medium Bright 1.9 Sec",
   "Large Warm 2.2 Sec",
   "Large Warm 1.75 Sec",
