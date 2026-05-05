@@ -11,8 +11,8 @@ constexpr uint16_t kMidiverb2Effect0LeftReadOffset = 135;
 constexpr uint16_t kMidiverb2Effect0RightReadOffset = 137;
 
 inline int16_t clampInt16(int32_t value) {
-    if (value > 32767) return 32767;
-    if (value < -32768) return -32768;
+    if (value > INT16_MAX) return INT16_MAX;
+    if (value < INT16_MIN) return INT16_MIN;
     return static_cast<int16_t>(value);
 }
 
