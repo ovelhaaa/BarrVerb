@@ -40,7 +40,7 @@ FrameOutput runAdaptedMidiverb2Effect(
         clampInt16(input),
         &outLeft,
         &outRight,
-        reinterpret_cast<int16_t(*)[0x4000]>(state.ram)[0],
+        state.ram,
         state.pointer & kDramMask,
         state.lfo1,
         state.lfo2);
