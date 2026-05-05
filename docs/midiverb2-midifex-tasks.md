@@ -16,7 +16,7 @@
 
 - [x] Implementar adaptador para funções de `decompiled-midiverb2.h` no backend web.
 - [x] Implementar adaptador para funções de `decompiled-midiverb2.h` no backend embarcado.
-- [ ] Integrar nomes de programas a partir de `names-midiverb2.h`.
+- [x] Integrar nomes de programas a partir de `names-midiverb2.h`.
 - [ ] Criar tabela de dispatch por programa para MidiVerb II.
 - [ ] Garantir normalização/clamp de entrada e saída compatível com o core atual.
 

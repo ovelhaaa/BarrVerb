@@ -8,5 +8,6 @@ const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
 export const midifexRegistry: DecompiledFamilyRegistry = {
   family: "MIDIFEX",
   programs: [],
+  programNames: [],
   fallback: notImplemented,
 };

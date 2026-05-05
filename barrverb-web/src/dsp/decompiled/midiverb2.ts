@@ -4,6 +4,7 @@ import type {
   DecompiledFrameOutput,
   DecompiledState,
 } from "./types";
+import { midiverb2ProgramNames } from "./midiverb2ProgramNames";
 
 type Midiverb2CStyleEffect = (
   input: number,
@@ -73,6 +74,7 @@ const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
 export const midiverb2Registry: DecompiledFamilyRegistry = {
   family: "MIDIVERB_II",
   programs: [adaptMidiverb2Effect(midiverb2Effect0Defeat)],
+  programNames: midiverb2ProgramNames,
   fallback: notImplemented,
 };
 
