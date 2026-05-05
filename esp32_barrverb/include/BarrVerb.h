@@ -21,6 +21,11 @@ class BarrVerb {
         Decompiled = 1,
     };
 
+    enum class EffectFamily : uint8_t {
+        Midiverb2 = 0,
+        Midifex = 1,
+    };
+
     BarrVerb();
     // Initialize things that might depend on sampling rate
     void setSampleRate(float sr);
@@ -33,6 +38,7 @@ class BarrVerb {
 
     void setProgram(uint8_t programIndex);
     void setEngine(EngineType engineType);
+    void setFamily(EffectFamily familyType);
     const char* getProgramName(uint8_t programIndex);
 
     // Public access for testing/debugging
@@ -65,6 +71,7 @@ class BarrVerb {
 
     uint8_t program;
     EngineType engine = EngineType::Interpreter;
+    EffectFamily family = EffectFamily::Midiverb2;
     float sampleRate = 44100.0f;
 };
 

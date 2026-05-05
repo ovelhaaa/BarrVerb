@@ -62,6 +62,10 @@ void BarrVerb::setEngine(EngineType engineType) {
     engine = engineType;
 }
 
+void BarrVerb::setFamily(EffectFamily familyType) {
+    family = familyType;
+}
+
 const char* BarrVerb::getProgramName(uint8_t programIndex) {
     // prog_name is an array of const char* in PROGMEM?
     // In rom.h we defined it as const char* const prog_name[].
@@ -81,6 +85,14 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
 
     // Local pointer to program for speed
     uint16_t* progPtr = currentProgram;
+    const bool runDecompiled = (engine == EngineType::Decompiled);
+    decompiled::EffectRunner runner = nullptr;
+    if (runDecompiled) {
+        const decompiled::Family selectedFamily =
+            (family == EffectFamily::Midifex) ? decompiled::Family::Midifex : decompiled::Family::Midiverb2;
+        const decompiled::FamilyRegistry& registry = decompiled::getRegistry(selectedFamily);
+        runner = (program < registry.programCount) ? registry.programs[program] : registry.fallback;
+    }
 
     // Process 2 frames at a time
     for (uint32_t i = 0; i < frames; i += 2) {
@@ -110,15 +122,13 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
         int16_t out_L = 0;
         int16_t out_R = 0;
 
-        if (engine == EngineType::Decompiled) {
+        if (runDecompiled) {
             decompiled::State state {
                 ram,
                 l_ptr,
                 0,
                 0,
             };
-            const decompiled::FamilyRegistry& registry = decompiled::getRegistry(decompiled::Family::Midiverb2);
-            decompiled::EffectRunner runner = (program < registry.programCount) ? registry.programs[program] : registry.fallback;
             decompiled::FrameOutput out = runner(dsp_in, state);
             out_L = out.left;
             out_R = out.right;

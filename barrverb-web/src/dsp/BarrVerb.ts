@@ -52,12 +52,21 @@ export class BarrVerb {
 
     private sampleRate: number = 44100;
     private engine: EngineType = "INTERPRETER";
+    private family: EffectFamily = "MIDIVERB_II";
     private programIndex: number = 0;
+    private decompiledOutput = { left: 0, right: 0 };
+    private decompiledState = {
+        ram: this.ram as Int16Array,
+        pointer: 0,
+        lfo1: 0,
+        lfo2: 0,
+    };
 
     constructor() {
         this.f1 = new SVF();
         this.f2 = new SVF();
         this.ram = new Int16Array(16384);
+        this.decompiledState.ram = this.ram;
         this.currentProgram = new Uint16Array(128);
         this.setSampleRate(44100.0);
     }
@@ -70,6 +79,10 @@ export class BarrVerb {
 
     setEngine(engine: EngineType) {
         this.engine = engine;
+    }
+
+    setFamily(family: EffectFamily) {
+        this.family = family;
     }
 
     /**
@@ -103,6 +116,14 @@ export class BarrVerb {
         let l_li = this.li;
         const l_ram = this.ram;
         const l_prog = this.currentProgram;
+        const runDecompiled = this.engine === "DECOMPILED";
+        const registry = runDecompiled ? getDecompiledRegistry(this.family) : null;
+        const runner = runDecompiled ? (registry.programs[this.programIndex] ?? registry.fallback) : null;
+        const decompiledOutput = this.decompiledOutput;
+        const decompiledState = this.decompiledState;
+        if (runDecompiled) {
+            decompiledState.pointer = l_ptr;
+        }
 
         // Original code processes 2 samples at a time in the block:
         // Filter is run every sample, but DSP engine runs every *other* sample.
@@ -131,20 +152,14 @@ export class BarrVerb {
             let out_L = 0;
             let out_R = 0;
 
-            if (this.engine === "DECOMPILED") {
-                const output = { left: 0, right: 0 };
-                const registry = getDecompiledRegistry("MIDIVERB_II");
-                const runner = registry.programs[this.programIndex] ?? registry.fallback;
-                const state = {
-                    ram: l_ram,
-                    pointer: l_ptr,
-                    lfo1: 0,
-                    lfo2: 0,
-                };
-                runner(dsp_in, output, state);
-                out_L = output.left;
-                out_R = output.right;
-                l_ptr = state.pointer & 0x3fff;
+            if (runDecompiled) {
+                decompiledOutput.left = 0;
+                decompiledOutput.right = 0;
+                decompiledState.pointer = l_ptr;
+                runner!(dsp_in, decompiledOutput, decompiledState);
+                out_L = decompiledOutput.left;
+                out_R = decompiledOutput.right;
+                l_ptr = decompiledState.pointer & 0x3fff;
             } else {
                 // --- DSP Loop (128 steps) ---
                 for (let step = 0; step < 128; step++) {
@@ -220,3 +235,4 @@ export class BarrVerb {
 import { getDecompiledRegistry } from "./decompiled";
 
 export type EngineType = "INTERPRETER" | "DECOMPILED";
+export type EffectFamily = "MIDIVERB_II" | "MIDIFEX";
