@@ -2,6 +2,12 @@
 #include "decompiled/DecompiledRegistry.h"
 #include "rom.h"
 
+static inline int16_t clampInt16FromInt32(int32_t value) {
+    if (value > 32767) return 32767;
+    if (value < -32768) return -32768;
+    return static_cast<int16_t>(value);
+}
+
 IRAM_ATTR void SVF::setFreq(float cutoff, float q, float samplerate) {
     z1 = z2 = 0;
     // Pre-calculate constants
@@ -117,7 +123,7 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
 
         // Prepare input for DSP engine
         // Scale factor 2048 matches original code.
-        int16_t dsp_in = (int16_t)(lp1 * 2048.0f);
+        const int16_t dsp_in = clampInt16FromInt32(static_cast<int32_t>(lp1 * 2048.0f));
 
         int16_t out_L = 0;
         int16_t out_R = 0;

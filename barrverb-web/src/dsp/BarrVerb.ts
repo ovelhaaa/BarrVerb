@@ -36,6 +36,11 @@ class SVF {
 }
 
 export class BarrVerb {
+    private static clampInt16(value: number): number {
+        if (value > 32767) return 32767;
+        if (value < -32768) return -32768;
+        return value | 0;
+    }
     private f1: SVF;
     private f2: SVF;
 
@@ -143,11 +148,7 @@ export class BarrVerb {
 
             // Prepare DSP input.
             // Original: dsp_in = (int16_t)(lp1 * 2048.0f)
-            let dsp_in = Math.round(lp1 * 2048.0);
-
-            // Clamp strictly to 16-bit integer bounds
-            if (dsp_in > 32767) dsp_in = 32767;
-            else if (dsp_in < -32768) dsp_in = -32768;
+            const dsp_in = BarrVerb.clampInt16(lp1 * 2048.0);
 
             let out_L = 0;
             let out_R = 0;
