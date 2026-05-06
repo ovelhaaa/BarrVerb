@@ -325,8 +325,9 @@ var BarrVerb = class _BarrVerb {
    * @param programIndex The index of the program (0-63)
    */
   setProgram(rom2, programIndex) {
-    this.programIndex = programIndex & 63;
-    const prog_offset = this.programIndex << 7;
+    this.programIndex = programIndex;
+    const safeRomIndex = programIndex & 63;
+    const prog_offset = safeRomIndex << 7;
     for (let i = 0; i < 128; i++) {
       this.currentProgram[i] = rom2[prog_offset + i];
     }
@@ -349,9 +350,10 @@ var BarrVerb = class _BarrVerb {
     const runDecompiled = this.engine === "DECOMPILED";
     const registry = runDecompiled ? getDecompiledRegistry(this.family) : null;
     const runner = runDecompiled && registry ? registry.programs[this.programIndex] ?? registry.fallback : null;
+    const hasDecompiledRunner = runDecompiled && runner !== null;
     const decompiledOutput = this.decompiledOutput;
     const decompiledState = this.decompiledState;
-    if (runDecompiled) {
+    if (hasDecompiledRunner) {
       decompiledState.pointer = l_ptr;
     }
     for (let i = 0; i < frames; i += 2) {
@@ -364,7 +366,7 @@ var BarrVerb = class _BarrVerb {
       const dsp_in = _BarrVerb.clampInt16(lp1 * 2048);
       let out_L = 0;
       let out_R = 0;
-      if (runDecompiled) {
+      if (hasDecompiledRunner) {
         decompiledOutput.left = 0;
         decompiledOutput.right = 0;
         decompiledState.pointer = l_ptr;
