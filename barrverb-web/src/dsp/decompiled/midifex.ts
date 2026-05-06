@@ -1,17 +1,11 @@
 import type {
+  DecompiledCStyleEffect,
   DecompiledEffectRunner,
   DecompiledFamilyRegistry,
 } from "./types";
 import { DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
 
-type MidifexCStyleEffect = (
-  input: number,
-  out: Int16Array,
-  dram: Int16Array,
-  pointer: number,
-  lfo1Value: number,
-  lfo2Value: number,
-) => void;
+type MidifexCStyleEffect = DecompiledCStyleEffect;
 
 const toInt16 = (value: number): number => {
   if (value > 32767) return 32767;

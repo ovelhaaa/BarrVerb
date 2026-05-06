@@ -16,6 +16,15 @@ export interface DecompiledState {
 export const DECOMPILED_DRAM_MASK = 0x3fff;
 export const DECOMPILED_POINTER_INCREMENT = 140;
 
+export type DecompiledCStyleEffect = (
+  input: number,
+  out: Int16Array,
+  dram: Int16Array,
+  pointer: number,
+  lfo1Value: number,
+  lfo2Value: number,
+) => void;
+
 export type DecompiledEffectRunner = (input: number, output: DecompiledFrameOutput, state: DecompiledState) => void;
 
 export interface DecompiledFamilyRegistry {

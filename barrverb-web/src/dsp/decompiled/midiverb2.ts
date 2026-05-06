@@ -1,4 +1,5 @@
 import type {
+  DecompiledCStyleEffect,
   DecompiledEffectRunner,
   DecompiledFamilyRegistry,
   DecompiledFrameOutput,
@@ -7,14 +8,7 @@ import type {
 import { DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
 import { midiverb2ProgramNames } from "./midiverb2ProgramNames";
 
-type Midiverb2CStyleEffect = (
-  input: number,
-  out: Int16Array,
-  dram: Int16Array,
-  pointer: number,
-  lfo1Value: number,
-  lfo2Value: number,
-) => void;
+type Midiverb2CStyleEffect = DecompiledCStyleEffect;
 
 const MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
 const MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
