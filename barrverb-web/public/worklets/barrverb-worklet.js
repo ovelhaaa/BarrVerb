@@ -1,3 +1,250 @@
+// src/dsp/decompiled/types.ts
+var DECOMPILED_DRAM_MASK = 16383;
+var DECOMPILED_POINTER_INCREMENT = 140;
+
+// src/dsp/decompiled/midifexProgramNames.ts
+var midifexProgramNames = [
+  "ECHO LONG FLAT AMBI",
+  "ECHO LONG FLAT THICK",
+  "ECHO LONG HPF",
+  "ECHO LONG HPF WIDE",
+  "ECHO LONG BPF AMBI",
+  "ECHO LONG LPF WIDE",
+  "ECHO MED FLAT AMBI",
+  "ECHO MED FLAT WIDE",
+  "ECHO MED HPF AMBI",
+  "ECHO MED BPF AMBI",
+  "ECHO MED LPF AMBI",
+  "ECHO MED LPF WIDE",
+  "ECHO MED FLAT THICK",
+  "ECHO SHORT FLAT",
+  "ECHO SHORT LPF AMBI",
+  "ECHO SHORT HPF AMBI",
+  "ECHO SHORT BPF AMBI",
+  "ECHO SHORT FLAT",
+  "ECHO SHORT FLAT WIDE",
+  "ECHO XSHORT FLAT",
+  "ECHO XSHORT BPF WIDE",
+  "2TAP MED FLAT AMBI",
+  "2TAP MED HPF AMBI",
+  "2TAP MED BPF AMBI",
+  "2TAP MED FLAT THICK",
+  "2TAP SHORT FLAT WIDE",
+  "2TAP SHORT HPF PAN",
+  "2TAP SHORT BPF AMBI",
+  "2TAP SHORT LPF AMBI",
+  "2TAP XSHORT FLAT WIDE",
+  "3TAP MED FLAT PAN",
+  "3TAP SHORT FLAT PAN",
+  "3TAP SHORT LPF AMBI",
+  "3TAP SHORT BPF AMBI",
+  "3TAP SHORT HPF AMBI",
+  "3TAP XSHORT FLAT AMBI",
+  "REGEN MED FLAT",
+  "REGEN MED HPF AMBI",
+  "REGEN MED BPF AMBI",
+  "REGEN MED LPF AMBI",
+  "REGEN SHORT FLAT",
+  "REGEN XSHORT FLAT",
+  "SLAP1",
+  "SLAP2",
+  "SLAP3",
+  "SLAP4",
+  "SLAP5",
+  "REVERB SHORT GATE",
+  "REVERB MEDIUM WARM",
+  "REVERB MEDIUM BLOOM",
+  "REVERB MEDIUM PAN",
+  "REVERB LONG HPF",
+  "REVERB REVERSE",
+  "REVERB REVERSE REGEN",
+  "MULTITAP PAN",
+  "MULTITAP REVERB",
+  "MULTITAP REVERSE PAN",
+  "THICKENER",
+  "THICKENER DENSE",
+  "STEREOGEN AMBIENT",
+  "STEREOGEN THICK",
+  "STEREOGEN WIDE",
+  "STEREOGEN XWIDE",
+  "DEFEAT"
+];
+var MIDIFEX_PROGRAM_COUNT = midifexProgramNames.length;
+
+// src/dsp/decompiled/midifex.ts
+var notImplemented = (input, output, _state) => {
+  output.left = input;
+  output.right = input;
+};
+var midifexRegistry = {
+  family: "MIDIFEX",
+  programs: [],
+  programNames: midifexProgramNames,
+  fallback: notImplemented
+};
+
+// src/dsp/decompiled/midiverb2ProgramNames.ts
+var midiverb2ProgramNames = [
+  "Defeat",
+  "Small Bright .1 Sec",
+  "Small Bright .2 Sec",
+  "Small Bright .3 Sec",
+  "Medium Warm 1.1 Sec",
+  "Medium Bright .6 Sec",
+  "Large Bright 1.2 Sec",
+  "Large Dark 1.0 Sec",
+  "Medium Dark .6 Sec",
+  "Medium Dark .5 Sec",
+  "Medium Bright .6 Sec",
+  "Medium Bright .8 Sec",
+  "Large Warm 1.0 Sec",
+  "Large Warm 1.1 Sec",
+  "Medium Dark 1.0 Sec",
+  "Medium Bright 1.1 Sec",
+  "Medium Bright 1.15 Sec",
+  "Large Bright 1.6 Sec",
+  "Large Dark 1.7 Sec",
+  "Medium Bright 1.65 Sec",
+  "Medium Bright 1.9 Sec",
+  "Large Warm 2.2 Sec",
+  "Large Warm 1.75 Sec",
+  "Large Bright 1.45 Sec",
+  "Large Dark 2.2 Sec",
+  "Large Warm 2.3 Sec",
+  "Large Bright 2.4 Sec",
+  "Large Bright 2.5 Sec",
+  "Xlarge Warm 5.0 Sec",
+  "Xlarge Warm 15.0 Sec",
+  "Slow Gate 100 Msec",
+  "Slow Gate 200 Msec",
+  "Slow Gate 250 Msec",
+  "Slow Gate 400 Msec",
+  "Slow Gate 450 Msec",
+  "Fast Gate 150 Msec",
+  "Fast Gate 75 Msec",
+  "Fast Gate 200 Msec",
+  "Fast Gate 100 Msec",
+  "Fast Gate 175 Msec",
+  "Reverse 400 Msec",
+  "Reverse 450 Msec",
+  "Reverse 250 Msec",
+  "Reverse 200 Msec",
+  "Reverse 150 Msec",
+  "Bloom 1 8 Sec",
+  "Reverse 500 Msec",
+  "Reverse Regen. 2 Sec",
+  "Reverse Regen. 8 Sec",
+  "Bloom 2 7 Sec",
+  "Triggered Flange",
+  "Flange Pan 1",
+  "Flange Pan 2",
+  "Triggered Flange 2",
+  "Flange Pan 3",
+  "Flange Pan 4",
+  "Flange Pan 5",
+  "Triggered Flange 3",
+  "Flange Pan 6",
+  "Flange Pan 7",
+  "Light Chorus 1",
+  "Light Chorus 2",
+  "Medium Chorus 1",
+  "Medium Chorus 2",
+  "Medium Chorus 3",
+  "Deep Chorus 1",
+  "Deep Chorus 2",
+  "Deep Chorus 3",
+  "Fast Chorus 1",
+  "Fast Chorus 2",
+  "35 Msec",
+  "55 Msec",
+  "75 Msec",
+  "115 Msec",
+  "140 Msec",
+  "155 Msec",
+  "160 Msec",
+  "170 Msec",
+  "175 Msec",
+  "180 Msec",
+  "185 Msec",
+  "195 Msec",
+  "205 Msec",
+  "210 Msec",
+  "220 Msec",
+  "240 Msec",
+  "250 Msec",
+  "275 Msec",
+  "375 Msec",
+  "460 Msec",
+  "2 Tap Ambient",
+  "3 Tap Pan",
+  "Multitap",
+  "Multitap Reverse Pan",
+  "Thickener/frozen Flange",
+  "Stereo Generation",
+  "Stereo Generation Wide",
+  "Regenerated Delay 2 Sec",
+  "Regenerated Delay 3 Sec",
+  "Regenerated Delay 4 Sec"
+];
+var MIDIVERB2_PROGRAM_COUNT = midiverb2ProgramNames.length;
+
+// src/dsp/decompiled/midiverb2.ts
+var MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
+var MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
+var MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET = 137;
+var toInt16 = (value) => {
+  if (value > 32767) return 32767;
+  if (value < -32768) return -32768;
+  return value | 0;
+};
+var adaptMidiverb2Effect = (effect) => {
+  return (input, output, state) => {
+    const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
+    scratchOut[0] = 0;
+    scratchOut[1] = 0;
+    effect(
+      toInt16(input),
+      scratchOut,
+      state.ram,
+      state.pointer & DECOMPILED_DRAM_MASK,
+      state.lfo1 >>> 0,
+      state.lfo2 >>> 0
+    );
+    state.pointer = state.pointer + DECOMPILED_POINTER_INCREMENT & DECOMPILED_DRAM_MASK;
+    output.left = toInt16(scratchOut[0]);
+    output.right = toInt16(scratchOut[1]);
+  };
+};
+var notImplemented2 = (input, output, _state) => {
+  output.left = input;
+  output.right = input;
+};
+var midiverb2Effect0Defeat = (_input, out, dram, pointer, _lfo1Value, _lfo2Value) => {
+  out[0] = dram[pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_LEFT_READ_OFFSET & DECOMPILED_DRAM_MASK];
+  out[1] = dram[pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET & DECOMPILED_DRAM_MASK];
+  dram[pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS & DECOMPILED_DRAM_MASK] = 0;
+};
+var midiverb2Registry = {
+  family: "MIDIVERB_II",
+  programs: (() => {
+    const effect0Runner = adaptMidiverb2Effect(midiverb2Effect0Defeat);
+    const table = Array.from({ length: midiverb2ProgramNames.length }, () => notImplemented2);
+    table[0] = effect0Runner;
+    return table;
+  })(),
+  programNames: midiverb2ProgramNames,
+  fallback: notImplemented2
+};
+
+// src/dsp/decompiled/registry.ts
+var registries = {
+  MIDIVERB_II: midiverb2Registry,
+  MIDIFEX: midifexRegistry
+};
+function getDecompiledRegistry(family) {
+  return registries[family];
+}
+
 // src/dsp/BarrVerb.ts
 var SVF = class {
   w = 0;
@@ -26,7 +273,12 @@ var SVF = class {
     return this.d0 * this.x + this.z2;
   }
 };
-var BarrVerb = class {
+var BarrVerb = class _BarrVerb {
+  static clampInt16(value) {
+    if (value > 32767) return 32767;
+    if (value < -32768) return -32768;
+    return value | 0;
+  }
   f1;
   f2;
   ai = 0;
@@ -38,10 +290,21 @@ var BarrVerb = class {
   // The active program instructions
   currentProgram;
   sampleRate = 44100;
+  engine = "INTERPRETER";
+  family = "MIDIVERB_II";
+  programIndex = 0;
+  decompiledOutput = { left: 0, right: 0 };
+  decompiledState;
   constructor() {
     this.f1 = new SVF();
     this.f2 = new SVF();
     this.ram = new Int16Array(16384);
+    this.decompiledState = {
+      ram: this.ram,
+      pointer: 0,
+      lfo1: 0,
+      lfo2: 0
+    };
     this.currentProgram = new Uint16Array(128);
     this.setSampleRate(44100);
   }
@@ -50,13 +313,20 @@ var BarrVerb = class {
     this.f1.setFreq(5916, 0.6572, this.sampleRate);
     this.f2.setFreq(9458, 2.536, this.sampleRate);
   }
+  setEngine(engine) {
+    this.engine = engine;
+  }
+  setFamily(family) {
+    this.family = family;
+  }
   /**
    * Loads a 128-word program into the cache.
    * @param rom The full ROM Uint16Array
    * @param programIndex The index of the program (0-63)
    */
   setProgram(rom2, programIndex) {
-    const prog_offset = (programIndex & 63) << 7;
+    this.programIndex = programIndex & 63;
+    const prog_offset = this.programIndex << 7;
     for (let i = 0; i < 128; i++) {
       this.currentProgram[i] = rom2[prog_offset + i];
     }
@@ -76,6 +346,14 @@ var BarrVerb = class {
     let l_li = this.li;
     const l_ram = this.ram;
     const l_prog = this.currentProgram;
+    const runDecompiled = this.engine === "DECOMPILED";
+    const registry = runDecompiled ? getDecompiledRegistry(this.family) : null;
+    const runner = runDecompiled && registry ? registry.programs[this.programIndex] ?? registry.fallback : null;
+    const decompiledOutput = this.decompiledOutput;
+    const decompiledState = this.decompiledState;
+    if (runDecompiled) {
+      decompiledState.pointer = l_ptr;
+    }
     for (let i = 0; i < frames; i += 2) {
       const mono1 = (inputL[i] + inputR[i]) * 0.5;
       const lp1 = this.f2.lpStep(this.f1.lpStep(mono1));
@@ -83,42 +361,50 @@ var BarrVerb = class {
         const mono2 = (inputL[i + 1] + inputR[i + 1]) * 0.5;
         this.f2.lpStep(this.f1.lpStep(mono2));
       }
-      let dsp_in = Math.round(lp1 * 2048);
-      if (dsp_in > 32767) dsp_in = 32767;
-      else if (dsp_in < -32768) dsp_in = -32768;
+      const dsp_in = _BarrVerb.clampInt16(lp1 * 2048);
       let out_L = 0;
       let out_R = 0;
-      for (let step = 0; step < 128; step++) {
-        const opcode = l_prog[step];
-        const op = opcode & 49152;
-        if (op === 0) {
-          l_ai = l_ram[l_ptr];
-          l_li = l_acc + (l_ai >> 1);
-        } else if (op === 16384) {
-          l_ai = l_ram[l_ptr];
-          l_li = l_ai >> 1;
-        } else if (op === 32768) {
-          l_ai = l_acc;
-          l_ram[l_ptr] = l_ai;
-          l_li = l_acc + (l_ai >> 1);
-        } else if (op === 49152) {
-          l_ai = l_acc;
-          l_ram[l_ptr] = -l_ai;
-          l_li = -(l_ai >> 1);
+      if (runDecompiled) {
+        decompiledOutput.left = 0;
+        decompiledOutput.right = 0;
+        decompiledState.pointer = l_ptr;
+        runner(dsp_in, decompiledOutput, decompiledState);
+        out_L = decompiledOutput.left;
+        out_R = decompiledOutput.right;
+        l_ptr = decompiledState.pointer & 16383;
+      } else {
+        for (let step = 0; step < 128; step++) {
+          const opcode = l_prog[step];
+          const op = opcode & 49152;
+          if (op === 0) {
+            l_ai = l_ram[l_ptr];
+            l_li = l_acc + (l_ai >> 1);
+          } else if (op === 16384) {
+            l_ai = l_ram[l_ptr];
+            l_li = l_ai >> 1;
+          } else if (op === 32768) {
+            l_ai = l_acc;
+            l_ram[l_ptr] = l_ai;
+            l_li = l_acc + (l_ai >> 1);
+          } else if (op === 49152) {
+            l_ai = l_acc;
+            l_ram[l_ptr] = -l_ai;
+            l_li = -(l_ai >> 1);
+          }
+          if (l_ai > 2047) l_ai = 2047;
+          else if (l_ai < -2047) l_ai = -2047;
+          if (step === 0) {
+            l_ram[l_ptr] = dsp_in;
+          } else if (step === 96) {
+            out_R = l_ai;
+          } else if (step === 112) {
+            out_L = l_ai;
+          } else {
+            l_acc = l_li;
+          }
+          l_ptr += opcode & 16383;
+          l_ptr &= 16383;
         }
-        if (l_ai > 2047) l_ai = 2047;
-        else if (l_ai < -2047) l_ai = -2047;
-        if (step === 0) {
-          l_ram[l_ptr] = dsp_in;
-        } else if (step === 96) {
-          out_R = l_ai;
-        } else if (step === 112) {
-          out_L = l_ai;
-        } else {
-          l_acc = l_li;
-        }
-        l_ptr += opcode & 16383;
-        l_ptr &= 16383;
       }
       const final_L = out_L / 2048;
       const final_R = out_R / 2048;

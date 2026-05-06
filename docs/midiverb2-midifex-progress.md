@@ -213,3 +213,17 @@
 - **Resumo técnico (curto):** implementada camada adaptadora no embarcado para assinatura C-style de efeitos MidiFex (`input`, `out_left`, `out_right`, `DRAM`, `ptr`, `lfo1`, `lfo2`), com passagem de estado compartilhado, máscara de ponteiro DRAM (`0x3fff`) e avanço do ponteiro por frame (`+140`). O fallback da família MidiFex passou a usar esse adaptador com um efeito passthrough C-style, validando o caminho de integração sem antecipar a tabela de dispatch.
 - **Pendências/riscos:** a integração de nomes de programas e tabela de dispatch MidiFex ainda está pendente nas próximas tasks; no momento, a família segue com fallback seguro.
 - **Decisão:** reutilizar a mesma política de avanço de ponteiro (`+140`) e máscara de DRAM do adaptador MidiVerb II para manter consistência entre famílias no backend decompilado embarcado.
+
+## 2026-05-06
+- **Task concluída:** `- [x] Integrar nomes de programas a partir de \`names-midifex.h\`.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midifexProgramNames.ts`
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `barrverb-web/src/dsp/decompiled/index.ts`
+  - `esp32_barrverb/include/decompiled/MidifexProgramNames.h`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** integração dos nomes de programas do MidiFex (63 entradas) a partir da referência `names-midifex.h`, com publicação no registry Web (`programNames`) e no registry embarcado (`programNames` + `programNameCount`) para permitir consulta consistente por família.
+- **Pendências/riscos:** os nomes foram integrados, mas ainda não existe tabela completa de dispatch de programas MidiFex; portanto a execução continua efetivamente limitada ao fallback seguro.
+- **Decisão:** centralizar os nomes em arquivos dedicados por alvo (`midifexProgramNames.ts` e `MidifexProgramNames.h`) seguindo a mesma estrutura usada para MidiVerb II para manter rastreabilidade direta com o material em `third_party` e facilitar reuso.

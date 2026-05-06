@@ -60,18 +60,23 @@ export class BarrVerb {
     private family: EffectFamily = "MIDIVERB_II";
     private programIndex: number = 0;
     private decompiledOutput = { left: 0, right: 0 };
-    private decompiledState = {
-        ram: this.ram as Int16Array,
-        pointer: 0,
-        lfo1: 0,
-        lfo2: 0,
+    private decompiledState: {
+        ram: Int16Array;
+        pointer: number;
+        lfo1: number;
+        lfo2: number;
     };
 
     constructor() {
         this.f1 = new SVF();
         this.f2 = new SVF();
         this.ram = new Int16Array(16384);
-        this.decompiledState.ram = this.ram;
+        this.decompiledState = {
+            ram: this.ram,
+            pointer: 0,
+            lfo1: 0,
+            lfo2: 0,
+        };
         this.currentProgram = new Uint16Array(128);
         this.setSampleRate(44100.0);
     }
@@ -123,7 +128,7 @@ export class BarrVerb {
         const l_prog = this.currentProgram;
         const runDecompiled = this.engine === "DECOMPILED";
         const registry = runDecompiled ? getDecompiledRegistry(this.family) : null;
-        const runner = runDecompiled ? (registry.programs[this.programIndex] ?? registry.fallback) : null;
+        const runner = runDecompiled && registry ? (registry.programs[this.programIndex] ?? registry.fallback) : null;
         const decompiledOutput = this.decompiledOutput;
         const decompiledState = this.decompiledState;
         if (runDecompiled) {
