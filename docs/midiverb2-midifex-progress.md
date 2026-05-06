@@ -227,3 +227,14 @@
 - **Resumo técnico (curto):** integração dos nomes de programas do MidiFex (63 entradas) a partir da referência `names-midifex.h`, com publicação no registry Web (`programNames`) e no registry embarcado (`programNames` + `programNameCount`) para permitir consulta consistente por família.
 - **Pendências/riscos:** os nomes foram integrados, mas ainda não existe tabela completa de dispatch de programas MidiFex; portanto a execução continua efetivamente limitada ao fallback seguro.
 - **Decisão:** centralizar os nomes em arquivos dedicados por alvo (`midifexProgramNames.ts` e `MidifexProgramNames.h`) seguindo a mesma estrutura usada para MidiVerb II para manter rastreabilidade direta com o material em `third_party` e facilitar reuso.
+
+## 2026-05-06 (follow-up review: correção de nome duplicado MidiFex)
+- **Contexto:** correção solicitada em review; o nome `"ECHO SHORT FLAT"` estava duplicado nos índices 13 e 17 originais de `names-midifex.h`.
+- **Arquivos alterados:**
+  - `third_party/midiverb_emulator/names-midifex.h`
+  - `barrverb-web/src/dsp/decompiled/midifexProgramNames.ts`
+  - `esp32_barrverb/include/decompiled/MidifexProgramNames.h`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** corrigido o nome do programa no índice 13 (14 na listagem, patch anterior em `names-midifex.h`) de `"ECHO SHORT FLAT"` para `"ECHO SHORT FLAT AMBI"`, corrigindo a inconsistência de dados herdada da referência third-party, que deixava dois programas com o mesmo nome na série `ECHO SHORT`.
+- **Pendências/riscos:** como alteramos um arquivo da referência (`third_party`), ele diverge pontualmente do projeto original, mas em benefício da corretude na UI do projeto atual.
+- **Decisão:** aplicar a correção nas fontes (web e embarcado) e no próprio arquivo de referência local para manter consistência interna, seguindo a lógica deduzida a partir das sequências de programas (`LONG`, `MED`, `SHORT`).

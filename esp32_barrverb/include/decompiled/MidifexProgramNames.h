@@ -18,7 +18,7 @@ inline constexpr const char* kMidifexProgramNames[] = {
     "ECHO MED LPF AMBI",
     "ECHO MED LPF WIDE",
     "ECHO MED FLAT THICK",
-    "ECHO SHORT FLAT",
+    "ECHO SHORT FLAT AMBI",
     "ECHO SHORT LPF AMBI",
     "ECHO SHORT HPF AMBI",
     "ECHO SHORT BPF AMBI",
