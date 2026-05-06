@@ -22,7 +22,7 @@
 
 ## Epic 3 — Integração MidiFex (arquivos: decompiled-midifex.h + names-midifex.h)
 
-- [ ] Implementar adaptador para funções de `decompiled-midifex.h` no backend web.
+- [x] Implementar adaptador para funções de `decompiled-midifex.h` no backend web.
 - [ ] Implementar adaptador para funções de `decompiled-midifex.h` no backend embarcado.
 - [ ] Integrar nomes de programas a partir de `names-midifex.h`.
 - [ ] Criar tabela de dispatch por programa para MidiFex.
