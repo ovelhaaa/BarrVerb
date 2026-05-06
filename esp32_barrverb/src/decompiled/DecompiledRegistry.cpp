@@ -69,21 +69,7 @@ FrameOutput runAdaptedMidifexEffect(
     MidifexCStyleEffect effect,
     int16_t input,
     State& state) {
-    int16_t outLeft = 0;
-    int16_t outRight = 0;
-
-    effect(
-        input,
-        &outLeft,
-        &outRight,
-        state.ram,
-        state.pointer & kDramMask,
-        state.lfo1,
-        state.lfo2);
-
-    state.pointer = (state.pointer + kMidiverb2PointerIncrement) & kDramMask;
-
-    return {outLeft, outRight};
+    return runAdaptedMidiverb2Effect(effect, input, state);
 }
 
 void midifexPassthroughEffect(
