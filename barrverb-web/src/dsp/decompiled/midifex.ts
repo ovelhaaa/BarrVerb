@@ -1,4 +1,45 @@
-import type { DecompiledEffectRunner, DecompiledFamilyRegistry } from "./types";
+import type {
+  DecompiledEffectRunner,
+  DecompiledFamilyRegistry,
+} from "./types";
+import { DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
+
+type MidifexCStyleEffect = (
+  input: number,
+  out: Int16Array,
+  dram: Int16Array,
+  pointer: number,
+  lfo1Value: number,
+  lfo2Value: number,
+) => void;
+
+const toInt16 = (value: number): number => {
+  if (value > 32767) return 32767;
+  if (value < -32768) return -32768;
+  return value | 0;
+};
+
+const adaptMidifexEffect = (effect: MidifexCStyleEffect): DecompiledEffectRunner => {
+  return (input, output, state) => {
+    const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
+    scratchOut[0] = 0;
+    scratchOut[1] = 0;
+
+    effect(
+      toInt16(input),
+      scratchOut,
+      state.ram,
+      state.pointer & DECOMPILED_DRAM_MASK,
+      state.lfo1 >>> 0,
+      state.lfo2 >>> 0,
+    );
+
+    state.pointer = (state.pointer + DECOMPILED_POINTER_INCREMENT) & DECOMPILED_DRAM_MASK;
+
+    output.left = toInt16(scratchOut[0]);
+    output.right = toInt16(scratchOut[1]);
+  };
+};
 
 const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
   output.left = input;
@@ -11,3 +52,5 @@ export const midifexRegistry: DecompiledFamilyRegistry = {
   programNames: [],
   fallback: notImplemented,
 };
+
+export { adaptMidifexEffect, type MidifexCStyleEffect };

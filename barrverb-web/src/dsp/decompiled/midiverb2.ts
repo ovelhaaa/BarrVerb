@@ -4,20 +4,18 @@ import type {
   DecompiledFrameOutput,
   DecompiledState,
 } from "./types";
+import { DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
 import { midiverb2ProgramNames } from "./midiverb2ProgramNames";
 
 type Midiverb2CStyleEffect = (
   input: number,
-  outLeft: { value: number },
-  outRight: { value: number },
+  out: Int16Array,
   dram: Int16Array,
   pointer: number,
   lfo1Value: number,
   lfo2Value: number,
 ) => void;
 
-const DRAM_MASK = 0x3fff;
-const MIDIVERB2_POINTER_INCREMENT = 140;
 const MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
 const MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
 const MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET = 137;
@@ -30,23 +28,23 @@ const toInt16 = (value: number): number => {
 
 const adaptMidiverb2Effect = (effect: Midiverb2CStyleEffect): DecompiledEffectRunner => {
   return (input: number, output: DecompiledFrameOutput, state: DecompiledState) => {
-    const left = { value: 0 };
-    const right = { value: 0 };
+    const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
+    scratchOut[0] = 0;
+    scratchOut[1] = 0;
 
     effect(
       toInt16(input),
-      left,
-      right,
+      scratchOut,
       state.ram,
-      state.pointer & DRAM_MASK,
+      state.pointer & DECOMPILED_DRAM_MASK,
       state.lfo1 >>> 0,
       state.lfo2 >>> 0,
     );
 
-    state.pointer = (state.pointer + MIDIVERB2_POINTER_INCREMENT) & DRAM_MASK;
+    state.pointer = (state.pointer + DECOMPILED_POINTER_INCREMENT) & DECOMPILED_DRAM_MASK;
 
-    output.left = toInt16(left.value);
-    output.right = toInt16(right.value);
+    output.left = toInt16(scratchOut[0]);
+    output.right = toInt16(scratchOut[1]);
   };
 };
 
@@ -58,16 +56,15 @@ const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
 // Adaptador usando a assinatura de `decompiled-midiverb2.h` (programa 0 implementado).
 const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
   _input,
-  outLeft,
-  outRight,
+  out,
   dram,
   pointer,
   _lfo1Value,
   _lfo2Value,
 ) => {
-  outLeft.value = dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_LEFT_READ_OFFSET) & DRAM_MASK];
-  outRight.value = dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET) & DRAM_MASK];
-  dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS) & DRAM_MASK] = 0;
+  out[0] = dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_LEFT_READ_OFFSET) & DECOMPILED_DRAM_MASK];
+  out[1] = dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET) & DECOMPILED_DRAM_MASK];
+  dram[(pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS) & DECOMPILED_DRAM_MASK] = 0;
 };
 
 export const midiverb2Registry: DecompiledFamilyRegistry = {

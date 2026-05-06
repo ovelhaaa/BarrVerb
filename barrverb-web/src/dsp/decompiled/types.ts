@@ -10,7 +10,11 @@ export interface DecompiledState {
   pointer: number;
   lfo1: number;
   lfo2: number;
+  scratchOut?: Int16Array;
 }
+
+export const DECOMPILED_DRAM_MASK = 0x3fff;
+export const DECOMPILED_POINTER_INCREMENT = 140;
 
 export type DecompiledEffectRunner = (input: number, output: DecompiledFrameOutput, state: DecompiledState) => void;
 
