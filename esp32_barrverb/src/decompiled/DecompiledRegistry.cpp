@@ -25,14 +25,7 @@ using Midiverb2CStyleEffect = void (*)(
     uint32_t lfo1Value,
     uint32_t lfo2Value);
 
-using MidifexCStyleEffect = void (*)(
-    int16_t input,
-    int16_t* outLeft,
-    int16_t* outRight,
-    int16_t dram[0x4000],
-    int pointer,
-    uint32_t lfo1Value,
-    uint32_t lfo2Value);
+using MidifexCStyleEffect = Midiverb2CStyleEffect;
 
 FrameOutput runAdaptedMidiverb2Effect(
     Midiverb2CStyleEffect effect,
