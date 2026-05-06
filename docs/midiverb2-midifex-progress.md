@@ -203,3 +203,13 @@
 - **Resumo técnico:** o adaptador de MidiVerb II foi atualizado para usar buffer compartilhado `state.scratchOut` (`Int16Array(2)`) em vez de wrappers `{ value }` por chamada; assinatura `Midiverb2CStyleEffect` foi alinhada para saída por array, sem alocações no loop por amostra.
 - **Pendências/riscos:** os efeitos decompilados reais de MidiVerb II/MidiFex ainda precisam ser conectados por programa nas tasks correspondentes.
 - **Decisão:** padronizar adapters de famílias decompiladas para saída em buffer compartilhado por estado de instância (reentrante por engine e sem estado global mutável).
+
+## 2026-05-06 (adaptador MidiFex embarcado)
+- **Task concluída:** `- [x] Implementar adaptador para funções de `decompiled-midifex.h` no backend embarcado.`
+- **Arquivos alterados:**
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** implementada camada adaptadora no embarcado para assinatura C-style de efeitos MidiFex (`input`, `out_left`, `out_right`, `DRAM`, `ptr`, `lfo1`, `lfo2`), com passagem de estado compartilhado, máscara de ponteiro DRAM (`0x3fff`) e avanço do ponteiro por frame (`+140`). O fallback da família MidiFex passou a usar esse adaptador com um efeito passthrough C-style, validando o caminho de integração sem antecipar a tabela de dispatch.
+- **Pendências/riscos:** a integração de nomes de programas e tabela de dispatch MidiFex ainda está pendente nas próximas tasks; no momento, a família segue com fallback seguro.
+- **Decisão:** reutilizar a mesma política de avanço de ponteiro (`+140`) e máscara de DRAM do adaptador MidiVerb II para manter consistência entre famílias no backend decompilado embarcado.

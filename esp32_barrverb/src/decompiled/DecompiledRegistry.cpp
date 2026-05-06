@@ -25,6 +25,8 @@ using Midiverb2CStyleEffect = void (*)(
     uint32_t lfo1Value,
     uint32_t lfo2Value);
 
+using MidifexCStyleEffect = Midiverb2CStyleEffect;
+
 FrameOutput runAdaptedMidiverb2Effect(
     Midiverb2CStyleEffect effect,
     int16_t input,
@@ -63,6 +65,29 @@ FrameOutput runMidiverb2Program0(int16_t input, State& state) {
     return runAdaptedMidiverb2Effect(midiverb2Effect0Defeat, input, state);
 }
 
+FrameOutput runAdaptedMidifexEffect(
+    MidifexCStyleEffect effect,
+    int16_t input,
+    State& state) {
+    return runAdaptedMidiverb2Effect(effect, input, state);
+}
+
+void midifexPassthroughEffect(
+    int16_t input,
+    int16_t* outLeft,
+    int16_t* outRight,
+    int16_t[0x4000],
+    int,
+    uint32_t,
+    uint32_t) {
+    *outLeft = input;
+    *outRight = input;
+}
+
+FrameOutput runMidifexFallback(int16_t input, State& state) {
+    return runAdaptedMidifexEffect(midifexPassthroughEffect, input, state);
+}
+
 std::array<EffectRunner, kMidiverb2ProgramNameCount> createMidiverb2DispatchTable() {
     std::array<EffectRunner, kMidiverb2ProgramNameCount> table {};
     table.fill(passthroughFallback);
@@ -87,7 +112,7 @@ const FamilyRegistry kMidifexRegistry {
     0,
     nullptr,
     0,
-    passthroughFallback,
+    runMidifexFallback,
 };
 
 } // namespace
