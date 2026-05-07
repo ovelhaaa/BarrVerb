@@ -1,6 +1,7 @@
 #include <array>
 #include "decompiled/DecompiledRegistry.h"
 #include "decompiled/Midiverb2ProgramNames.h"
+#include "decompiled/MidifexProgramNames.h"
 
 namespace decompiled {
 
@@ -110,8 +111,8 @@ const FamilyRegistry kMidifexRegistry {
     Family::Midifex,
     nullptr,
     0,
-    nullptr,
-    0,
+    kMidifexProgramNames,
+    static_cast<uint16_t>(kMidifexProgramNameCount),
     runMidifexFallback,
 };
 

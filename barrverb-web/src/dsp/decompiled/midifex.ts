@@ -4,6 +4,7 @@ import type {
   DecompiledFamilyRegistry,
 } from "./types";
 import { DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
+import { midifexProgramNames } from "./midifexProgramNames";
 
 type MidifexCStyleEffect = DecompiledCStyleEffect;
 
@@ -35,6 +36,7 @@ const adaptMidifexEffect = (effect: MidifexCStyleEffect): DecompiledEffectRunner
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
   output.left = input;
   output.right = input;
@@ -43,7 +45,7 @@ const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
 export const midifexRegistry: DecompiledFamilyRegistry = {
   family: "MIDIFEX",
   programs: [],
-  programNames: [],
+  programNames: midifexProgramNames,
   fallback: notImplemented,
 };
 
