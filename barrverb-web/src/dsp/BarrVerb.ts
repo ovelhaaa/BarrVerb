@@ -66,6 +66,10 @@ export class BarrVerb {
         lfo1: number;
         lfo2: number;
     };
+    private lfo1Phase: number = 0;
+    private lfo2Phase: number = 0;
+    private lfo1Increment: number = 0;
+    private lfo2Increment: number = 0;
 
     constructor() {
         this.f1 = new SVF();
@@ -85,6 +89,9 @@ export class BarrVerb {
         this.sampleRate = sr;
         this.f1.setFreq(5916.0, 0.6572, this.sampleRate);
         this.f2.setFreq(9458.0, 2.536, this.sampleRate);
+        const dspRate = Math.max(1, this.sampleRate * 0.5);
+        this.lfo1Increment = ((0.35 / dspRate) * 0x100000000) >>> 0;
+        this.lfo2Increment = ((0.91 / dspRate) * 0x100000000) >>> 0;
     }
 
     setEngine(engine: EngineType) {
@@ -136,6 +143,10 @@ export class BarrVerb {
         if (hasDecompiledRunner) {
             decompiledState.pointer = l_ptr;
         }
+        let lfo1Phase = this.lfo1Phase >>> 0;
+        let lfo2Phase = this.lfo2Phase >>> 0;
+        const lfo1Increment = this.lfo1Increment >>> 0;
+        const lfo2Increment = this.lfo2Increment >>> 0;
 
         // Original code processes 2 samples at a time in the block:
         // Filter is run every sample, but DSP engine runs every *other* sample.
@@ -164,6 +175,10 @@ export class BarrVerb {
                 decompiledOutput.left = 0;
                 decompiledOutput.right = 0;
                 decompiledState.pointer = l_ptr;
+                lfo1Phase = (lfo1Phase + lfo1Increment) >>> 0;
+                lfo2Phase = (lfo2Phase + lfo2Increment) >>> 0;
+                decompiledState.lfo1 = lfo1Phase;
+                decompiledState.lfo2 = lfo2Phase;
                 runner(dsp_in, decompiledOutput, decompiledState);
                 out_L = decompiledOutput.left;
                 out_R = decompiledOutput.right;
@@ -238,6 +253,8 @@ export class BarrVerb {
         this.ptr = l_ptr;
         this.ai = l_ai;
         this.li = l_li;
+        this.lfo1Phase = lfo1Phase;
+        this.lfo2Phase = lfo2Phase;
     }
 }
 import { getDecompiledRegistry } from "./decompiled";

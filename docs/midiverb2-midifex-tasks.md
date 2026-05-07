@@ -31,7 +31,7 @@
 ## Epic 4 — LFO e compatibilidade de modulação (arquivos: lfo.h + dasp16.h)
 
 - [x] Definir representação interna de LFO1/LFO2 compatível com o backend decompilado.
-- [ ] Implementar geração/atualização de LFO no processamento em bloco.
+- [x] Implementar geração/atualização de LFO no processamento em bloco.
 - [ ] Conectar LFO1/LFO2 às assinaturas dos efeitos decompilados.
 - [ ] Validar presets modulados (chorus/flanger/pitch/mod).
 
