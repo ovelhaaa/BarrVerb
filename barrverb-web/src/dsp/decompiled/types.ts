@@ -8,10 +8,16 @@ export interface DecompiledFrameOutput {
 export interface DecompiledState {
   ram: Int16Array;
   pointer: number;
-  lfo1: number;
-  lfo2: number;
+  lfo1: DecompiledLfoValue;
+  lfo2: DecompiledLfoValue;
   scratchOut?: Int16Array;
 }
+
+/**
+ * Representação de LFO compatível com os headers decompilados (uint32_t).
+ * Mantemos em number no JS, sempre normalizado para faixa uint32 via >>> 0.
+ */
+export type DecompiledLfoValue = number;
 
 export const DECOMPILED_DRAM_MASK = 0x3fff;
 export const DECOMPILED_POINTER_INCREMENT = 140;
