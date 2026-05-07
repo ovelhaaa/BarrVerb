@@ -26,7 +26,7 @@
 - [x] Implementar adaptador para funções de `decompiled-midifex.h` no backend embarcado.
 - [x] Integrar nomes de programas a partir de `names-midifex.h`.
 - [x] Criar tabela de dispatch por programa para MidiFex.
-- [ ] Definir fallback seguro para programas ausentes (bypass/defeat).
+- [x] Definir fallback seguro para programas ausentes (bypass/defeat).
 
 ## Epic 4 — LFO e compatibilidade de modulação (arquivos: lfo.h + dasp16.h)
 

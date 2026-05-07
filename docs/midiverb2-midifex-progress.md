@@ -1,3 +1,22 @@
+## 2026-05-07 (ajuste pós-review: fallback MidiVerb II com avanço de ponteiro)
+- **Contexto:** feedback de revisão apontou inconsistência entre o fallback MidiFex (runner adaptado com `pointer += 140`) e o fallback MidiVerb II (passthrough direto sem avanço de ponteiro).
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** o fallback MidiVerb II foi migrado para runner adaptado em Web e embarcado, usando passthrough C-style com o mesmo caminho de adaptação que já incrementa o ponteiro DRAM (`+140` com máscara `0x3fff`). A tabela de dispatch e o `fallback` da família agora apontam para esse runner, garantindo paridade de estado ao alternar programas/famílias em slots não implementados.
+- **Pendências/riscos:** o fallback continua sendo comportamento seguro de continuidade (passthrough), sem equivalência tímbrica com algoritmos finais ainda não integrados.
+- **Decisão:** padronizar todos os fallbacks de programas ausentes no backend decompilado para runners adaptados que avançam ponteiro, evitando deriva de estado entre caminhos placeholder.
+
+## 2026-05-07 (fallback seguro para programas ausentes)
+- **Task concluída:** `- [x] Definir fallback seguro para programas ausentes (bypass/defeat).`
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** validação de implementação já existente confirmou fallback seguro para programas ausentes nos dois targets: no Web, seleção usa `registry.programs[this.programIndex] ?? registry.fallback`; no embarcado, seleção usa `(program < registry.programCount) ? registry.programs[program] : registry.fallback`; e os registries MidiFex/MidiVerb II mantêm fallback explícito de passthrough/runner seguro para índices não implementados.
+- **Pendências/riscos:** fallback atual privilegia segurança e continuidade de áudio (passthrough/defeat), mas não substitui a integração dos algoritmos reais por programa.
+- **Decisão:** considerar a task concluída sem mudança de código de DSP, pois o comportamento requerido já estava implementado e faltava apenas o fechamento formal no controle de execução.
+
 ## 2026-05-07 (follow-up review: paridade de fallback MidiFex Web + util compartilhado)
 - **Contexto:** ajustes solicitados em review da task `Criar tabela de dispatch por programa para MidiFex`.
 - **Arquivos alterados:**
