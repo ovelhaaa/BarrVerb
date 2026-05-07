@@ -237,10 +237,11 @@ var adaptMidiverb2Effect = (effect) => {
     output.right = clampToInt16(scratchOut[1]);
   };
 };
-var notImplemented = (input, output, _state) => {
-  output.left = input;
-  output.right = input;
+var midiverb2Passthrough = (input, out) => {
+  out[0] = input;
+  out[1] = input;
 };
+var midiverb2FallbackRunner = adaptMidiverb2Effect(midiverb2Passthrough);
 var midiverb2Effect0Defeat = (_input, out, dram, pointer, _lfo1Value, _lfo2Value) => {
   out[0] = dram[pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_LEFT_READ_OFFSET & DECOMPILED_DRAM_MASK];
   out[1] = dram[pointer + MIDIVERB2_EFFECT0_WRITE_ADDRESS - MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET & DECOMPILED_DRAM_MASK];
@@ -250,12 +251,12 @@ var midiverb2Registry = {
   family: "MIDIVERB_II",
   programs: (() => {
     const effect0Runner = adaptMidiverb2Effect(midiverb2Effect0Defeat);
-    const table = Array.from({ length: midiverb2ProgramNames.length }, () => notImplemented);
+    const table = Array.from({ length: midiverb2ProgramNames.length }, () => midiverb2FallbackRunner);
     table[0] = effect0Runner;
     return table;
   })(),
   programNames: midiverb2ProgramNames,
-  fallback: notImplemented
+  fallback: midiverb2FallbackRunner
 };
 
 // src/dsp/decompiled/registry.ts
@@ -317,6 +318,10 @@ var BarrVerb = class _BarrVerb {
   programIndex = 0;
   decompiledOutput = { left: 0, right: 0 };
   decompiledState;
+  lfo1Phase = 0;
+  lfo2Phase = 0;
+  lfo1Increment = 0;
+  lfo2Increment = 0;
   constructor() {
     this.f1 = new SVF();
     this.f2 = new SVF();
@@ -334,6 +339,9 @@ var BarrVerb = class _BarrVerb {
     this.sampleRate = sr;
     this.f1.setFreq(5916, 0.6572, this.sampleRate);
     this.f2.setFreq(9458, 2.536, this.sampleRate);
+    const dspRate = Math.max(1, this.sampleRate * 0.5);
+    this.lfo1Increment = 0.35 / dspRate * 4294967296 >>> 0;
+    this.lfo2Increment = 0.91 / dspRate * 4294967296 >>> 0;
   }
   setEngine(engine) {
     this.engine = engine;
@@ -378,6 +386,10 @@ var BarrVerb = class _BarrVerb {
     if (hasDecompiledRunner) {
       decompiledState.pointer = l_ptr;
     }
+    let lfo1Phase = this.lfo1Phase >>> 0;
+    let lfo2Phase = this.lfo2Phase >>> 0;
+    const lfo1Increment = this.lfo1Increment >>> 0;
+    const lfo2Increment = this.lfo2Increment >>> 0;
     for (let i = 0; i < frames; i += 2) {
       const mono1 = (inputL[i] + inputR[i]) * 0.5;
       const lp1 = this.f2.lpStep(this.f1.lpStep(mono1));
@@ -392,6 +404,10 @@ var BarrVerb = class _BarrVerb {
         decompiledOutput.left = 0;
         decompiledOutput.right = 0;
         decompiledState.pointer = l_ptr;
+        lfo1Phase = lfo1Phase + lfo1Increment >>> 0;
+        lfo2Phase = lfo2Phase + lfo2Increment >>> 0;
+        decompiledState.lfo1 = lfo1Phase;
+        decompiledState.lfo2 = lfo2Phase;
         runner(dsp_in, decompiledOutput, decompiledState);
         out_L = decompiledOutput.left;
         out_R = decompiledOutput.right;
@@ -443,6 +459,8 @@ var BarrVerb = class _BarrVerb {
     this.ptr = l_ptr;
     this.ai = l_ai;
     this.li = l_li;
+    this.lfo1Phase = lfo1Phase;
+    this.lfo2Phase = lfo2Phase;
   }
 };
 
@@ -8944,6 +8962,9 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
         this.outputGain = data.gain;
       } else if (data.type === "setModulation") {
         this.mod.setParameters(data.modType, data.modRate, data.modDepth, data.modMix, data.modFeedback);
+      } else if (data.type === "setUnit") {
+        this.reverb.setEngine(data.engine);
+        this.reverb.setFamily(data.family);
       }
     };
   }
