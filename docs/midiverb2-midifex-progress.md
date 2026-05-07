@@ -1,3 +1,12 @@
+## 2026-05-07 (fallback seguro para programas ausentes)
+- **Task concluída:** `- [x] Definir fallback seguro para programas ausentes (bypass/defeat).`
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** validação de implementação já existente confirmou fallback seguro para programas ausentes nos dois targets: no Web, seleção usa `registry.programs[this.programIndex] ?? registry.fallback`; no embarcado, seleção usa `(program < registry.programCount) ? registry.programs[program] : registry.fallback`; e os registries MidiFex/MidiVerb II mantêm fallback explícito de passthrough/runner seguro para índices não implementados.
+- **Pendências/riscos:** fallback atual privilegia segurança e continuidade de áudio (passthrough/defeat), mas não substitui a integração dos algoritmos reais por programa.
+- **Decisão:** considerar a task concluída sem mudança de código de DSP, pois o comportamento requerido já estava implementado e faltava apenas o fechamento formal no controle de execução.
+
 ## 2026-05-07 (follow-up review: paridade de fallback MidiFex Web + util compartilhado)
 - **Contexto:** ajustes solicitados em review da task `Criar tabela de dispatch por programa para MidiFex`.
 - **Arquivos alterados:**
