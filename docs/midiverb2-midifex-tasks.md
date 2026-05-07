@@ -32,7 +32,7 @@
 
 - [x] Definir representação interna de LFO1/LFO2 compatível com o backend decompilado.
 - [x] Implementar geração/atualização de LFO no processamento em bloco.
-- [ ] Conectar LFO1/LFO2 às assinaturas dos efeitos decompilados.
+- [x] Conectar LFO1/LFO2 às assinaturas dos efeitos decompilados.
 - [ ] Validar presets modulados (chorus/flanger/pitch/mod).
 
 ## Epic 5 — Integração de UI/controle e seleção de unidade

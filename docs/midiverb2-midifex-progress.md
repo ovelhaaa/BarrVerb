@@ -1,3 +1,12 @@
+## 2026-05-07 (Epic 4 — conexão de LFO nas assinaturas)
+- **Task concluída:** `- [x] Conectar LFO1/LFO2 às assinaturas dos efeitos decompilados.`
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** validado e consolidado o contrato de chamada dos adaptadores DECOMPILED em Web e ESP32 com passagem explícita de `lfo1`/`lfo2` (`uint32`) para as assinaturas C-style dos efeitos (`input`, `out_left`, `out_right`, `DRAM`, `ptr`, `lfo1`, `lfo2`), sem alterar comportamento de áudio nesta iteração.
+- **Pendências/riscos:** a ligação semântica por preset modulado (chorus/flanger/pitch/mod) ainda depende da próxima task de validação dos presets modulados.
+- **Decisão:** concluir esta task sem ampliar escopo para novos algoritmos, mantendo foco na confirmação e rastreabilidade do contrato de assinatura entre estado do engine e adaptadores de efeitos.
+
 ## 2026-05-07
 - **Task concluída:** `- [x] Implementar geração/atualização de LFO no processamento em bloco.`
 - **Arquivos alterados:**
