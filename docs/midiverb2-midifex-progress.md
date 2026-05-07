@@ -1,3 +1,23 @@
+## 2026-05-07 (ajuste pós-review: alias LFO reutilizável no namespace)
+- **Contexto:** review solicitou mover o alias de tipo de LFO para nível de namespace no backend embarcado, facilitando reuso fora de `State`.
+- **Arquivos alterados:**
+  - `esp32_barrverb/include/decompiled/DecompiledTypes.h`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** `LfoValue` foi promovido de `State::LfoValue` para `decompiled::LfoValue`, mantendo `uint32_t` como tipo-base e preservando os campos `State::lfo1/lfo2` com o novo alias compartilhado.
+- **Pendências/riscos:** sem impacto funcional esperado; a geração/atualização dinâmica de LFO continua pendente nas próximas tasks do Epic 4.
+- **Decisão:** padronizar aliases reutilizáveis em nível de namespace quando representam contrato transversal do backend decompilado.
+
+## 2026-05-07
+- **Task concluída:** `- [x] Definir representação interna de LFO1/LFO2 compatível com o backend decompilado.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/types.ts`
+  - `esp32_barrverb/include/decompiled/DecompiledTypes.h`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** formalizada a representação interna de LFO como valor compatível com `uint32_t` em ambos os alvos: no Web, `DecompiledLfoValue` documenta o contrato numérico com normalização `>>> 0`; no embarcado, `State::LfoValue` tipa explicitamente `lfo1/lfo2` como `uint32_t`.
+- **Pendências/riscos:** a representação foi definida, mas a geração/atualização dinâmica dos valores de LFO no loop de processamento permanece pendente das próximas tasks do Epic 4.
+- **Decisão:** manter contrato de LFO baseado em inteiro sem sinal de 32 bits para alinhar assinatura dos adaptadores aos headers decompilados e evitar perda de precisão de fase/modulação.
+
 ## 2026-05-07 (ajuste pós-review: fallback MidiVerb II com avanço de ponteiro)
 - **Contexto:** feedback de revisão apontou inconsistência entre o fallback MidiFex (runner adaptado com `pointer += 140`) e o fallback MidiVerb II (passthrough direto sem avanço de ponteiro).
 - **Arquivos alterados:**
