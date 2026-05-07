@@ -1,3 +1,14 @@
+## 2026-05-07
+- **Task concluída:** `- [x] Criar tabela de dispatch por programa para MidiFex.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** criada tabela de dispatch por programa para MidiFex nos dois targets com cardinalidade baseada em `names-midifex` (63 entradas); no Web a tabela é inicializada com fallback seguro e programa 0 ligado ao runner adaptado existente; no embarcado a tabela passa a ser explícita no registry com fallback por índice para todos os programas enquanto os efeitos decompilados individuais não forem conectados.
+- **Pendências/riscos:** embora o dispatch por índice agora exista, a cobertura funcional ainda depende da futura ligação programa-a-programa dos efeitos reais de `decompiled-midifex.h`; atualmente os demais índices permanecem em fallback seguro.
+- **Decisão:** manter o tamanho da tabela derivado dos nomes de programa (`kMidifexProgramNameCount` / `midifexProgramNames.length`) para evitar divergência de cardinalidade entre Web e embarcado.
+
 # Progresso de Implementação — MidiVerb II e MidiFex
 
 ## 2026-05-04 (seleção de família de efeitos)

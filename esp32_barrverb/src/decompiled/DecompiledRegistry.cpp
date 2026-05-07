@@ -98,6 +98,15 @@ std::array<EffectRunner, kMidiverb2ProgramNameCount> createMidiverb2DispatchTabl
 
 const auto kMidiverb2DispatchTable = createMidiverb2DispatchTable();
 
+
+std::array<EffectRunner, kMidifexProgramNameCount> createMidifexDispatchTable() {
+    std::array<EffectRunner, kMidifexProgramNameCount> table {};
+    table.fill(runMidifexFallback);
+    return table;
+}
+
+const auto kMidifexDispatchTable = createMidifexDispatchTable();
+
 const FamilyRegistry kMidiverb2Registry {
     Family::Midiverb2,
     kMidiverb2DispatchTable.data(),
@@ -109,8 +118,8 @@ const FamilyRegistry kMidiverb2Registry {
 
 const FamilyRegistry kMidifexRegistry {
     Family::Midifex,
-    nullptr,
-    0,
+    kMidifexDispatchTable.data(),
+    static_cast<uint16_t>(kMidifexDispatchTable.size()),
     kMidifexProgramNames,
     static_cast<uint16_t>(kMidifexProgramNameCount),
     runMidifexFallback,

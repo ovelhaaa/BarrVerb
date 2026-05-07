@@ -72,13 +72,44 @@ var midifexProgramNames = [
 var MIDIFEX_PROGRAM_COUNT = midifexProgramNames.length;
 
 // src/dsp/decompiled/midifex.ts
+var toInt16 = (value) => {
+  if (value > 32767) return 32767;
+  if (value < -32768) return -32768;
+  return value | 0;
+};
+var adaptMidifexEffect = (effect) => {
+  return (input, output, state) => {
+    const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
+    scratchOut[0] = 0;
+    scratchOut[1] = 0;
+    effect(
+      toInt16(input),
+      scratchOut,
+      state.ram,
+      state.pointer & DECOMPILED_DRAM_MASK,
+      state.lfo1 >>> 0,
+      state.lfo2 >>> 0
+    );
+    state.pointer = state.pointer + DECOMPILED_POINTER_INCREMENT & DECOMPILED_DRAM_MASK;
+    output.left = toInt16(scratchOut[0]);
+    output.right = toInt16(scratchOut[1]);
+  };
+};
 var notImplemented = (input, output, _state) => {
   output.left = input;
   output.right = input;
 };
+var createMidifexDispatchTable = () => {
+  const table = new Array(midifexProgramNames.length).fill(notImplemented);
+  table[0] = adaptMidifexEffect((input, output) => {
+    output[0] = input;
+    output[1] = input;
+  });
+  return table;
+};
 var midifexRegistry = {
   family: "MIDIFEX",
-  programs: [],
+  programs: createMidifexDispatchTable(),
   programNames: midifexProgramNames,
   fallback: notImplemented
 };
@@ -192,7 +223,7 @@ var MIDIVERB2_PROGRAM_COUNT = midiverb2ProgramNames.length;
 var MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
 var MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
 var MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET = 137;
-var toInt16 = (value) => {
+var toInt162 = (value) => {
   if (value > 32767) return 32767;
   if (value < -32768) return -32768;
   return value | 0;
@@ -203,7 +234,7 @@ var adaptMidiverb2Effect = (effect) => {
     scratchOut[0] = 0;
     scratchOut[1] = 0;
     effect(
-      toInt16(input),
+      toInt162(input),
       scratchOut,
       state.ram,
       state.pointer & DECOMPILED_DRAM_MASK,
@@ -211,8 +242,8 @@ var adaptMidiverb2Effect = (effect) => {
       state.lfo2 >>> 0
     );
     state.pointer = state.pointer + DECOMPILED_POINTER_INCREMENT & DECOMPILED_DRAM_MASK;
-    output.left = toInt16(scratchOut[0]);
-    output.right = toInt16(scratchOut[1]);
+    output.left = toInt162(scratchOut[0]);
+    output.right = toInt162(scratchOut[1]);
   };
 };
 var notImplemented2 = (input, output, _state) => {

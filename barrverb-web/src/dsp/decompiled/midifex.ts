@@ -42,9 +42,18 @@ const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
   output.right = input;
 };
 
+const createMidifexDispatchTable = (): DecompiledEffectRunner[] => {
+  const table = new Array<DecompiledEffectRunner>(midifexProgramNames.length).fill(notImplemented);
+  table[0] = adaptMidifexEffect((input, output) => {
+    output[0] = input;
+    output[1] = input;
+  });
+  return table;
+};
+
 export const midifexRegistry: DecompiledFamilyRegistry = {
   family: "MIDIFEX",
-  programs: [],
+  programs: createMidifexDispatchTable(),
   programNames: midifexProgramNames,
   fallback: notImplemented,
 };
