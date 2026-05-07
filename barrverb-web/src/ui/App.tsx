@@ -47,7 +47,7 @@ function App() {
         audioSys.resume();
     };
 
-    const activeProgramNames = unit === 'MIDIVERB_II' ? midiverb2ProgramNames : midifexProgramNames;
+    const activeProgramNames = unit === 'MIDIVERB_II' ? midiverb2ProgramNames.slice(0, 64) : midifexProgramNames;
 
     const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newUnit = e.target.value as 'MIDIVERB_II' | 'MIDIFEX';
