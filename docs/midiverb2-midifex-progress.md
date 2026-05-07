@@ -1,3 +1,12 @@
+## 2026-05-07 (ajuste pós-review: alias LFO reutilizável no namespace)
+- **Contexto:** review solicitou mover o alias de tipo de LFO para nível de namespace no backend embarcado, facilitando reuso fora de `State`.
+- **Arquivos alterados:**
+  - `esp32_barrverb/include/decompiled/DecompiledTypes.h`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** `LfoValue` foi promovido de `State::LfoValue` para `decompiled::LfoValue`, mantendo `uint32_t` como tipo-base e preservando os campos `State::lfo1/lfo2` com o novo alias compartilhado.
+- **Pendências/riscos:** sem impacto funcional esperado; a geração/atualização dinâmica de LFO continua pendente nas próximas tasks do Epic 4.
+- **Decisão:** padronizar aliases reutilizáveis em nível de namespace quando representam contrato transversal do backend decompilado.
+
 ## 2026-05-07
 - **Task concluída:** `- [x] Definir representação interna de LFO1/LFO2 compatível com o backend decompilado.`
 - **Arquivos alterados:**

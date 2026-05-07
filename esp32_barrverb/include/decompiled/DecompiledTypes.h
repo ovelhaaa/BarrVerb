@@ -4,6 +4,8 @@
 
 namespace decompiled {
 
+using LfoValue = uint32_t;
+
 enum class Family : uint8_t {
     Midiverb2 = 0,
     Midifex = 1,
@@ -17,7 +19,6 @@ struct FrameOutput {
 struct State {
     int16_t* ram;
     uint16_t pointer;
-    using LfoValue = uint32_t;
     LfoValue lfo1;
     LfoValue lfo2;
 };
