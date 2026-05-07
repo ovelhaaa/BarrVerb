@@ -36,10 +36,12 @@ const adaptMidiverb2Effect = (effect: Midiverb2CStyleEffect): DecompiledEffectRu
   };
 };
 
-const notImplemented: DecompiledEffectRunner = (input, output, _state) => {
-  output.left = input;
-  output.right = input;
+const midiverb2Passthrough: Midiverb2CStyleEffect = (input, out) => {
+  out[0] = input;
+  out[1] = input;
 };
+
+const midiverb2FallbackRunner: DecompiledEffectRunner = adaptMidiverb2Effect(midiverb2Passthrough);
 
 // Adaptador usando a assinatura de `decompiled-midiverb2.h` (programa 0 implementado).
 const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
@@ -59,12 +61,12 @@ export const midiverb2Registry: DecompiledFamilyRegistry = {
   family: "MIDIVERB_II",
   programs: (() => {
     const effect0Runner = adaptMidiverb2Effect(midiverb2Effect0Defeat);
-    const table: DecompiledEffectRunner[] = Array.from({ length: midiverb2ProgramNames.length }, () => notImplemented);
+    const table: DecompiledEffectRunner[] = Array.from({ length: midiverb2ProgramNames.length }, () => midiverb2FallbackRunner);
     table[0] = effect0Runner;
     return table;
   })(),
   programNames: midiverb2ProgramNames,
-  fallback: notImplemented,
+  fallback: midiverb2FallbackRunner,
 };
 
 export { adaptMidiverb2Effect, type Midiverb2CStyleEffect };

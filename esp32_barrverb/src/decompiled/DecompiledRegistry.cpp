@@ -13,9 +13,6 @@ constexpr uint16_t kMidiverb2Effect0WriteAddress = 140;
 constexpr uint16_t kMidiverb2Effect0LeftReadOffset = 135;
 constexpr uint16_t kMidiverb2Effect0RightReadOffset = 137;
 
-FrameOutput passthroughFallback(int16_t input, State&) {
-    return {input, input};
-}
 
 using Midiverb2CStyleEffect = void (*)(
     int16_t input,
@@ -66,6 +63,23 @@ FrameOutput runMidiverb2Program0(int16_t input, State& state) {
     return runAdaptedMidiverb2Effect(midiverb2Effect0Defeat, input, state);
 }
 
+
+void midiverb2PassthroughEffect(
+    int16_t input,
+    int16_t* outLeft,
+    int16_t* outRight,
+    int16_t[0x4000],
+    int,
+    uint32_t,
+    uint32_t) {
+    *outLeft = input;
+    *outRight = input;
+}
+
+FrameOutput runMidiverb2Fallback(int16_t input, State& state) {
+    return runAdaptedMidiverb2Effect(midiverb2PassthroughEffect, input, state);
+}
+
 FrameOutput runAdaptedMidifexEffect(
     MidifexCStyleEffect effect,
     int16_t input,
@@ -91,7 +105,7 @@ FrameOutput runMidifexFallback(int16_t input, State& state) {
 
 std::array<EffectRunner, kMidiverb2ProgramNameCount> createMidiverb2DispatchTable() {
     std::array<EffectRunner, kMidiverb2ProgramNameCount> table {};
-    table.fill(passthroughFallback);
+    table.fill(runMidiverb2Fallback);
     table[0] = runMidiverb2Program0;
     return table;
 }
@@ -113,7 +127,7 @@ const FamilyRegistry kMidiverb2Registry {
     static_cast<uint16_t>(kMidiverb2DispatchTable.size()),
     kMidiverb2ProgramNames,
     static_cast<uint16_t>(kMidiverb2ProgramNameCount),
-    passthroughFallback,
+    runMidiverb2Fallback,
 };
 
 const FamilyRegistry kMidifexRegistry {

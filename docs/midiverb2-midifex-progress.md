@@ -1,3 +1,13 @@
+## 2026-05-07 (ajuste pós-review: fallback MidiVerb II com avanço de ponteiro)
+- **Contexto:** feedback de revisão apontou inconsistência entre o fallback MidiFex (runner adaptado com `pointer += 140`) e o fallback MidiVerb II (passthrough direto sem avanço de ponteiro).
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** o fallback MidiVerb II foi migrado para runner adaptado em Web e embarcado, usando passthrough C-style com o mesmo caminho de adaptação que já incrementa o ponteiro DRAM (`+140` com máscara `0x3fff`). A tabela de dispatch e o `fallback` da família agora apontam para esse runner, garantindo paridade de estado ao alternar programas/famílias em slots não implementados.
+- **Pendências/riscos:** o fallback continua sendo comportamento seguro de continuidade (passthrough), sem equivalência tímbrica com algoritmos finais ainda não integrados.
+- **Decisão:** padronizar todos os fallbacks de programas ausentes no backend decompilado para runners adaptados que avançam ponteiro, evitando deriva de estado entre caminhos placeholder.
+
 ## 2026-05-07 (fallback seguro para programas ausentes)
 - **Task concluída:** `- [x] Definir fallback seguro para programas ausentes (bypass/defeat).`
 - **Arquivos alterados:**
