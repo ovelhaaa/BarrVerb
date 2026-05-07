@@ -16,6 +16,12 @@ export interface DecompiledState {
 export const DECOMPILED_DRAM_MASK = 0x3fff;
 export const DECOMPILED_POINTER_INCREMENT = 140;
 
+export const clampToInt16 = (value: number): number => {
+  if (value > 32767) return 32767;
+  if (value < -32768) return -32768;
+  return value | 0;
+};
+
 export type DecompiledCStyleEffect = (
   input: number,
   out: Int16Array,

@@ -5,7 +5,7 @@ import type {
   DecompiledFrameOutput,
   DecompiledState,
 } from "./types";
-import { DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
+import { clampToInt16, DECOMPILED_DRAM_MASK, DECOMPILED_POINTER_INCREMENT } from "./types";
 import { midiverb2ProgramNames } from "./midiverb2ProgramNames";
 
 type Midiverb2CStyleEffect = DecompiledCStyleEffect;
@@ -14,12 +14,6 @@ const MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
 const MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
 const MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET = 137;
 
-const toInt16 = (value: number): number => {
-  if (value > 32767) return 32767;
-  if (value < -32768) return -32768;
-  return value | 0;
-};
-
 const adaptMidiverb2Effect = (effect: Midiverb2CStyleEffect): DecompiledEffectRunner => {
   return (input: number, output: DecompiledFrameOutput, state: DecompiledState) => {
     const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
@@ -27,7 +21,7 @@ const adaptMidiverb2Effect = (effect: Midiverb2CStyleEffect): DecompiledEffectRu
     scratchOut[1] = 0;
 
     effect(
-      toInt16(input),
+      clampToInt16(input),
       scratchOut,
       state.ram,
       state.pointer & DECOMPILED_DRAM_MASK,
@@ -37,8 +31,8 @@ const adaptMidiverb2Effect = (effect: Midiverb2CStyleEffect): DecompiledEffectRu
 
     state.pointer = (state.pointer + DECOMPILED_POINTER_INCREMENT) & DECOMPILED_DRAM_MASK;
 
-    output.left = toInt16(scratchOut[0]);
-    output.right = toInt16(scratchOut[1]);
+    output.left = clampToInt16(scratchOut[0]);
+    output.right = clampToInt16(scratchOut[1]);
   };
 };
 

@@ -1,3 +1,25 @@
+## 2026-05-07 (follow-up review: paridade de fallback MidiFex Web + util compartilhado)
+- **Contexto:** ajustes solicitados em review da task `Criar tabela de dispatch por programa para MidiFex`.
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `barrverb-web/src/dsp/decompiled/types.ts`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** no Web, a tabela MidiFex passou a preencher todos os slots com runner adaptado (`adaptMidifexEffect`) em passthrough, e o `fallback` da família também passou a usar esse mesmo runner, garantindo avanço de ponteiro DRAM (`+140`) em todos os programas placeholder e alinhando o comportamento ao embarcado. Também foi extraído helper compartilhado `clampToInt16` para `types.ts` e adotado em `midifex.ts` e `midiverb2.ts` para remover duplicação.
+- **Pendências/riscos:** o comportamento placeholder de MidiFex permanece em passthrough com avanço de ponteiro; a ligação dos efeitos reais por programa segue pendente.
+- **Decisão:** priorizar paridade de estado entre Web/embarcado para programas não implementados (evitando deriva de `state.pointer`) e centralizar clamp `int16` em util compartilhado para reduzir divergência futura.
+
+## 2026-05-07
+- **Task concluída:** `- [x] Criar tabela de dispatch por programa para MidiFex.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `esp32_barrverb/src/decompiled/DecompiledRegistry.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** criada tabela de dispatch por programa para MidiFex nos dois targets com cardinalidade baseada em `names-midifex` (63 entradas); no Web a tabela é inicializada com fallback seguro e programa 0 ligado ao runner adaptado existente; no embarcado a tabela passa a ser explícita no registry com fallback por índice para todos os programas enquanto os efeitos decompilados individuais não forem conectados.
+- **Pendências/riscos:** embora o dispatch por índice agora exista, a cobertura funcional ainda depende da futura ligação programa-a-programa dos efeitos reais de `decompiled-midifex.h`; atualmente os demais índices permanecem em fallback seguro.
+- **Decisão:** manter o tamanho da tabela derivado dos nomes de programa (`kMidifexProgramNameCount` / `midifexProgramNames.length`) para evitar divergência de cardinalidade entre Web e embarcado.
+
 # Progresso de Implementação — MidiVerb II e MidiFex
 
 ## 2026-05-04 (seleção de família de efeitos)

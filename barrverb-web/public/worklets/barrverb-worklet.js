@@ -1,6 +1,11 @@
 // src/dsp/decompiled/types.ts
 var DECOMPILED_DRAM_MASK = 16383;
 var DECOMPILED_POINTER_INCREMENT = 140;
+var clampToInt16 = (value) => {
+  if (value > 32767) return 32767;
+  if (value < -32768) return -32768;
+  return value | 0;
+};
 
 // src/dsp/decompiled/midifexProgramNames.ts
 var midifexProgramNames = [
@@ -72,15 +77,37 @@ var midifexProgramNames = [
 var MIDIFEX_PROGRAM_COUNT = midifexProgramNames.length;
 
 // src/dsp/decompiled/midifex.ts
-var notImplemented = (input, output, _state) => {
-  output.left = input;
-  output.right = input;
+var adaptMidifexEffect = (effect) => {
+  return (input, output, state) => {
+    const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
+    scratchOut[0] = 0;
+    scratchOut[1] = 0;
+    effect(
+      clampToInt16(input),
+      scratchOut,
+      state.ram,
+      state.pointer & DECOMPILED_DRAM_MASK,
+      state.lfo1 >>> 0,
+      state.lfo2 >>> 0
+    );
+    state.pointer = state.pointer + DECOMPILED_POINTER_INCREMENT & DECOMPILED_DRAM_MASK;
+    output.left = clampToInt16(scratchOut[0]);
+    output.right = clampToInt16(scratchOut[1]);
+  };
+};
+var midifexPassthrough = (input, output) => {
+  output[0] = input;
+  output[1] = input;
+};
+var midifexFallbackRunner = adaptMidifexEffect(midifexPassthrough);
+var createMidifexDispatchTable = () => {
+  return new Array(midifexProgramNames.length).fill(midifexFallbackRunner);
 };
 var midifexRegistry = {
   family: "MIDIFEX",
-  programs: [],
+  programs: createMidifexDispatchTable(),
   programNames: midifexProgramNames,
-  fallback: notImplemented
+  fallback: midifexFallbackRunner
 };
 
 // src/dsp/decompiled/midiverb2ProgramNames.ts
@@ -192,18 +219,13 @@ var MIDIVERB2_PROGRAM_COUNT = midiverb2ProgramNames.length;
 var MIDIVERB2_EFFECT0_WRITE_ADDRESS = 140;
 var MIDIVERB2_EFFECT0_LEFT_READ_OFFSET = 135;
 var MIDIVERB2_EFFECT0_RIGHT_READ_OFFSET = 137;
-var toInt16 = (value) => {
-  if (value > 32767) return 32767;
-  if (value < -32768) return -32768;
-  return value | 0;
-};
 var adaptMidiverb2Effect = (effect) => {
   return (input, output, state) => {
     const scratchOut = state.scratchOut ?? (state.scratchOut = new Int16Array(2));
     scratchOut[0] = 0;
     scratchOut[1] = 0;
     effect(
-      toInt16(input),
+      clampToInt16(input),
       scratchOut,
       state.ram,
       state.pointer & DECOMPILED_DRAM_MASK,
@@ -211,11 +233,11 @@ var adaptMidiverb2Effect = (effect) => {
       state.lfo2 >>> 0
     );
     state.pointer = state.pointer + DECOMPILED_POINTER_INCREMENT & DECOMPILED_DRAM_MASK;
-    output.left = toInt16(scratchOut[0]);
-    output.right = toInt16(scratchOut[1]);
+    output.left = clampToInt16(scratchOut[0]);
+    output.right = clampToInt16(scratchOut[1]);
   };
 };
-var notImplemented2 = (input, output, _state) => {
+var notImplemented = (input, output, _state) => {
   output.left = input;
   output.right = input;
 };
@@ -228,12 +250,12 @@ var midiverb2Registry = {
   family: "MIDIVERB_II",
   programs: (() => {
     const effect0Runner = adaptMidiverb2Effect(midiverb2Effect0Defeat);
-    const table = Array.from({ length: midiverb2ProgramNames.length }, () => notImplemented2);
+    const table = Array.from({ length: midiverb2ProgramNames.length }, () => notImplemented);
     table[0] = effect0Runner;
     return table;
   })(),
   programNames: midiverb2ProgramNames,
-  fallback: notImplemented2
+  fallback: notImplemented
 };
 
 // src/dsp/decompiled/registry.ts
