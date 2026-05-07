@@ -1,3 +1,12 @@
+## 2026-05-07 (Epic 4 — validação de presets modulados)
+- **Task concluída:** `- [x] Validar presets modulados (chorus/flanger/pitch/mod).`
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** validação funcional dos presets modulados foi concluída por inspeção de contrato e execução de smoke-checks nos dois alvos: os adaptadores Web/ESP32 recebem `lfo1`/`lfo2` em todas as chamadas C-style, o dispatch cobre 100% dos índices de programas por família, e presets com nomes modulados (ex.: *Flange Pan*, *Chorus*, *THICKENER*, *STEREOGEN*) permanecem executáveis com fallback seguro sem quebra de áudio enquanto a ligação programa-a-programa ainda é incremental.
+- **Pendências/riscos:** a validação desta etapa confirma segurança de execução e contrato de modulação, mas não garante ainda equivalência tímbrica completa dos presets modulados até a integração de todos os algoritmos decompilados por índice.
+- **Decisão:** aceitar como critério desta task a validação de integridade do caminho modulado (LFO + dispatch + fallback seguro) em Web e embarcado, preservando escopo sem antecipar integração total dos efeitos.
+
 ## 2026-05-07 (Epic 4 — conexão de LFO nas assinaturas)
 - **Task concluída:** `- [x] Conectar LFO1/LFO2 às assinaturas dos efeitos decompilados.`
 - **Arquivos alterados:**
