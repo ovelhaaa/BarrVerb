@@ -2,6 +2,7 @@
 #define BARRVERB_H
 
 #include <Arduino.h>
+#include "decompiled/DecompiledTypes.h"
 
 class SVF {
    public:
@@ -73,6 +74,10 @@ class BarrVerb {
     EngineType engine = EngineType::Interpreter;
     EffectFamily family = EffectFamily::Midiverb2;
     float sampleRate = 44100.0f;
+    decompiled::LfoValue lfo1Phase = 0;
+    decompiled::LfoValue lfo2Phase = 0;
+    decompiled::LfoValue lfo1Increment = 0;
+    decompiled::LfoValue lfo2Increment = 0;
 };
 
 #endif

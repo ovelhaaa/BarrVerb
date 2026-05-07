@@ -50,6 +50,9 @@ void BarrVerb::setSampleRate(float sr) {
     sampleRate = sr;
     f1.setFreq(5916.0f, .6572f, sampleRate);
     f2.setFreq(9458.0f, 2.536f, sampleRate);
+    const float dspRate = fmaxf(1.0f, sampleRate * 0.5f);
+    lfo1Increment = static_cast<decompiled::LfoValue>((0.35f / dspRate) * 4294967296.0f);
+    lfo2Increment = static_cast<decompiled::LfoValue>((0.91f / dspRate) * 4294967296.0f);
 }
 
 void BarrVerb::setProgram(uint8_t programIndex) {
@@ -93,6 +96,8 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
     uint16_t* progPtr = currentProgram;
     const bool runDecompiled = (engine == EngineType::Decompiled);
     decompiled::EffectRunner runner = nullptr;
+    decompiled::LfoValue lfo1PhaseLocal = lfo1Phase;
+    decompiled::LfoValue lfo2PhaseLocal = lfo2Phase;
     if (runDecompiled) {
         const decompiled::Family selectedFamily =
             (family == EffectFamily::Midifex) ? decompiled::Family::Midifex : decompiled::Family::Midiverb2;
@@ -132,8 +137,8 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
             decompiled::State state {
                 ram,
                 l_ptr,
-                0,
-                0,
+                static_cast<decompiled::LfoValue>(lfo1PhaseLocal += lfo1Increment),
+                static_cast<decompiled::LfoValue>(lfo2PhaseLocal += lfo2Increment),
             };
             decompiled::FrameOutput out = runner(dsp_in, state);
             out_L = out.left;
@@ -214,4 +219,6 @@ IRAM_ATTR void BarrVerb::run(const int16_t *input, int16_t *output, uint32_t fra
     ptr = l_ptr;
     ai = l_ai;
     li = l_li;
+    lfo1Phase = lfo1PhaseLocal;
+    lfo2Phase = lfo2PhaseLocal;
 }

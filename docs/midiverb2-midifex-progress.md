@@ -1,3 +1,15 @@
+## 2026-05-07
+- **Task concluída:** `- [x] Implementar geração/atualização de LFO no processamento em bloco.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/BarrVerb.ts`
+  - `esp32_barrverb/include/BarrVerb.h`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** implementada geração/atualização de LFO por bloco no caminho `DECOMPILED` para Web e embarcado usando acumuladores de fase de 32 bits (`lfo1/lfo2`) atualizados a cada frame de DSP (a cada 2 amostras), com incrementos recalculados em `setSampleRate` para manter comportamento proporcional à taxa de processamento do core.
+- **Pendências/riscos:** os valores de LFO agora são gerados e atualizados no loop de processamento, mas a ligação semântica completa com os efeitos específicos (incluindo patches por preset) permanece para a próxima task de conexão às assinaturas de efeitos.
+- **Decisão:** padronizar geração inicial de LFO via phase accumulator `uint32` nos dois alvos para garantir paridade de contrato entre Web/ESP32 e permitir integração incremental dos patch tables de modulação.
+
 ## 2026-05-07 (ajuste pós-review: alias LFO reutilizável no namespace)
 - **Contexto:** review solicitou mover o alias de tipo de LFO para nível de namespace no backend embarcado, facilitando reuso fora de `State`.
 - **Arquivos alterados:**
