@@ -351,3 +351,13 @@
 - **Resumo técnico (curto):** Mapeado o controle de unidade (`u`) via Serial, alternando a família (`Midiverb2` / `Midifex`) e as engines correspondentes (`Interpreter` / `Decompiled`) na inicialização e loop da ESP32. Além disso, o limite máximo de programas foi dinamicamente ajustado com base na família selecionada, garantindo comportamento semelhante à web na UI via console serial.
 - **Pendências/riscos:** Sem riscos imediatos identificados. A integração no firmware foi bem sucedida.
 - **Decisão:** Reutilizada a lógica do adaptador `Decompiled` recém-implementado na engine esp32_barrverb durante o roteamento (`MidiFex`), e clamp seguro do programa atual com base na variação máxima respectiva.
+
+## 2026-05-07 (Embarcado: Correção de Limites de Programa)
+- **Task concluída:** Correção/Follow-up de `- [x] Embarcado: mapear controle para troca de unidade e programa.`
+- **Arquivos alterados:**
+  - `esp32_barrverb/src/main.cpp`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** Ajustado o limite máximo para programas da MidiFex de 62 para 63 na interface Serial e atualizado o limite de clamp de entrada na engine subjacente (`BarrVerb::setProgram()`) para suportar corretamente 99 (`MidiVerb2`) ou 63 (`MidiFex`), em vez do antigo hardcode truncado em 63 para todos os casos.
+- **Pendências/riscos:** Sem riscos imediatos identificados. Evita problemas de programas fantasmas ao selecionar além do limite.
+- **Decisão:** Aumentar o suporte no clamp `BarrVerb::setProgram` dependendo de `family`, alinhando os índices entre os limites da unidade externa e da lógica de processamento interna.

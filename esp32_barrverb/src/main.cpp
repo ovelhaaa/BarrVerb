@@ -206,14 +206,14 @@ void loop() {
         static int src = 1;
         static bool isMidifex = false;
 
-        int maxProg = isMidifex ? 62 : 99;
+        int maxProg = isMidifex ? 63 : 99;
 
         if (c == 'u') {
             isMidifex = !isMidifex;
             if (isMidifex) {
                 reverb.setEngine(BarrVerb::EngineType::Decompiled);
                 reverb.setFamily(BarrVerb::EffectFamily::Midifex);
-                maxProg = 62;
+                maxProg = 63;
                 Serial.println("Unit changed to: MidiFex");
             } else {
                 reverb.setEngine(BarrVerb::EngineType::Interpreter);

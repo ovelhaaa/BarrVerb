@@ -57,7 +57,8 @@ void BarrVerb::setSampleRate(float sr) {
 
 void BarrVerb::setProgram(uint8_t programIndex) {
     program = programIndex;
-    if (program > 63) program = 0;
+    if (family == EffectFamily::Midiverb2 && program > 99) program = 0;
+    else if (family != EffectFamily::Midiverb2 && program > 63) program = 0;
     // Calculate offset in ROM (128 words per program)
     prog_offset = (program & 0x3f) << 7;
 
