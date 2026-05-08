@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AudioSystem } from '../audio/audio';
-import { prog_names } from '../dsp/rom';
+import { midiverb2ProgramNames, midifexProgramNames } from '../dsp/decompiled';
 import './App.css';
 
 const audioSys = new AudioSystem();
@@ -8,6 +8,7 @@ const audioSys = new AudioSystem();
 function App() {
     const [ready, setReady] = useState(false);
     const [error, setError] = useState('');
+    const [unit, setUnit] = useState<'MIDIVERB_II' | 'MIDIFEX'>('MIDIVERB_II');
     const [program, setProgram] = useState(0);
     const [mix, setMix] = useState(0.5);
     const [gain, setGain] = useState(1.0);
@@ -44,6 +45,16 @@ function App() {
         setError('');
         await audioSys.initialize();
         audioSys.resume();
+    };
+
+    const activeProgramNames = unit === 'MIDIVERB_II' ? midiverb2ProgramNames.slice(0, 64) : midifexProgramNames;
+
+    const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newUnit = e.target.value as 'MIDIVERB_II' | 'MIDIFEX';
+        setUnit(newUnit);
+        setProgram(0);
+        audioSys.setUnit(newUnit);
+        audioSys.setProgram(0);
     };
 
     const handleProgramChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -166,15 +177,23 @@ function App() {
                 <div className="panel">
                     <div className="program-panel">
                         <div className="controls">
+                            <div className="control-group">
+                                <label htmlFor="unit-select">Unit:</label>
+                                <select id="unit-select" value={unit} onChange={handleUnitChange}>
+                                    <option value="MIDIVERB_II">MidiVerb II</option>
+                                    <option value="MIDIFEX">MidiFex</option>
+                                </select>
+                            </div>
+
                             <div className="control-group program-group">
                                 <div className="program-header">
-                                    <label htmlFor="program-select">Program: {prog_names[program]}</label>
+                                    <label htmlFor="program-select">Program: {activeProgramNames[program]}</label>
                                     <div className="led" aria-hidden="true">
                                         {program.toString().padStart(2, '0')}
                                     </div>
                                 </div>
                                 <select id="program-select" value={program} onChange={handleProgramChange}>
-                                    {prog_names.map((name, i) => (
+                                    {activeProgramNames.map((name, i) => (
                                         <option key={i} value={i}>
                                             {i.toString().padStart(2, '0')} - {name}
                                         </option>

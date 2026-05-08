@@ -329,3 +329,15 @@
 - **Resumo técnico (curto):** corrigido o nome do programa no índice 13 (14 na listagem, patch anterior em `names-midifex.h`) de `"ECHO SHORT FLAT"` para `"ECHO SHORT FLAT AMBI"`, corrigindo a inconsistência de dados herdada da referência third-party, que deixava dois programas com o mesmo nome na série `ECHO SHORT`.
 - **Pendências/riscos:** como alteramos um arquivo da referência (`third_party`), ele diverge pontualmente do projeto original, mas em benefício da corretude na UI do projeto atual.
 - **Decisão:** aplicar a correção nas fontes (web e embarcado) e no próprio arquivo de referência local para manter consistência interna, seguindo a lógica deduzida a partir das sequências de programas (`LONG`, `MED`, `SHORT`).
+
+## 2026-05-07
+- **Task concluída:** `- [x] Web: adicionar seletor de unidade (MidiVerb II / MidiFex).` e `- [x] Web: atualizar lista de presets dinamicamente por unidade.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/audio/worklet.ts`
+  - `barrverb-web/src/audio/audio.ts`
+  - `barrverb-web/src/ui/App.tsx`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** Adicionado seletor de unidade na interface Web com atualização automática da família de efeitos e engine subjacente (`INTERPRETER` para MidiVerb II e `DECOMPILED` para MidiFex). A lista de nomes de programas foi conectada para trocar dinamicamente dependendo da unidade selecionada.
+- **Pendências/riscos:** A seleção na web está funcional. Falta implementar comportamento equivalente para hardware embarcado (ESP32) mapeando o botão/encoder de controle.
+- **Decisão:** Unir a task de atualizar lista de presets à do seletor, pois uma interface com seletor de hardware mas mantendo as listagens incorretas dos programas da outra unidade tornaria a experiência de uso/debugging confusa. O MidiVerb II foi mantido no motor INTERPRETER por default e o MidiFex no DECOMPILED para garantir a fidelidade de MV2 enquanto o fallback atua.

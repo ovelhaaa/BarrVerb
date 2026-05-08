@@ -41,6 +41,9 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
                 this.outputGain = data.gain;
             } else if (data.type === 'setModulation') {
                 this.mod.setParameters(data.modType, data.modRate, data.modDepth, data.modMix, data.modFeedback);
+            } else if (data.type === 'setUnit') {
+                this.reverb.setEngine(data.engine);
+                this.reverb.setFamily(data.family);
             }
         };
     }

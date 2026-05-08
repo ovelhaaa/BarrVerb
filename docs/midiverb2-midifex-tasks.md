@@ -37,8 +37,8 @@
 
 ## Epic 5 — Integração de UI/controle e seleção de unidade
 
-- [ ] Web: adicionar seletor de unidade (MidiVerb II / MidiFex).
-- [ ] Web: atualizar lista de presets dinamicamente por unidade.
+- [x] Web: adicionar seletor de unidade (MidiVerb II / MidiFex).
+- [x] Web: atualizar lista de presets dinamicamente por unidade.
 - [ ] Embarcado: mapear controle para troca de unidade e programa.
 - [ ] Exibir nome de preset ativo em logs/UI quando disponível.
 
