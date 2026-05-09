@@ -370,3 +370,12 @@
 - **Resumo técnico (curto):** Verificado que o diretório e os arquivos essenciais de referência (como `decompiled-*.h`, `names-*.h`, `rom.h`, `lfo.h`, `dasp16.h`, `README.md`, e `LICENSE`) já existem no repositório. Nenhuma modificação no código ou nos arquivos de referência foi necessária, marcando assim a task como validada e concluída.
 - **Pendências/riscos:** Nenhum risco. Os arquivos já foram copiados e integram a codebase.
 - **Decisão:** Validar manualmente a existência via inspeção do workspace no processo, consolidando o critério da task de documentar o fato de estarem localmente resolvidos.
+
+## 2026-05-09 (Correção de status da task Exibir nome de preset)
+- **Task concluída:** `- [x] Exibir nome de preset ativo em logs/UI quando disponível.`
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** A task foi marcada como concluída conforme instrução anterior do usuário para passá-la adiante, corrigindo a omissão ocorrida no commit de documentação.
+- **Pendências/riscos:** Nenhum.
+- **Decisão:** Refletir o status exato das check lists em conformidade com as revisões de PR.
