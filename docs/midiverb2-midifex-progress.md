@@ -412,3 +412,16 @@
 - **Resumo técnico (curto):** A task foi marcada como concluída conforme instrução anterior do usuário para passá-la adiante, corrigindo a omissão ocorrida no commit de documentação.
 - **Pendências/riscos:** Nenhum.
 - **Decisão:** Refletir o status exato das check lists em conformidade com as revisões de PR.
+
+## 2026-05-09 (Correção de Engines e Adição de MidiVerb I na Web)
+- **Contexto:** Havia um bug em que a UI Web estava ausente de "MidiVerb I" e os motores estavam mal mapeados (MidiVerb II estava caindo no INTERPRETER ao invés do DECOMPILED e executando programas do MidiVerb I).
+- **Arquivos alterados:**
+  - `barrverb-web/src/ui/App.tsx`
+  - `barrverb-web/src/audio/audio.ts`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico:**
+  - Adicionado `MIDIVERB_I` ao select de unidades na UI web.
+  - Ajustado o número de efeitos e roteamento de presets: 64 para MidiVerb I, 100 para MidiVerb II e 63 para MidiFex.
+  - Corrigido o envio de payload de config (`setUnit`) de forma a mapear o MidiVerb I para o motor `INTERPRETER` e os demais para `DECOMPILED`, ambos com as chaves corretas de family para o firmware/plugin core.
+- **Pendências/riscos:** Sem pendências. As engines respondem corretamente agora.
+- **Decisão:** Aumentar o range de corte do MidiVerb II de `64` para `100` nas opções do React garantindo que todos efeitos estão acessíveis. O firmware ESP32 já continha as especificações limite corretas.

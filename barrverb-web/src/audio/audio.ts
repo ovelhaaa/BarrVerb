@@ -83,6 +83,7 @@ export class AudioSystem {
     async exportProcessedMp3(
         file: File,
         settings: {
+            unit: 'MIDIVERB_I' | 'MIDIVERB_II' | 'MIDIFEX';
             program: number;
             mix: number;
             bypass: boolean;
@@ -125,6 +126,10 @@ export class AudioSystem {
             numberOfOutputs: 1,
             outputChannelCount: [2]
         });
+
+        const engine = settings.unit === 'MIDIVERB_I' ? 'INTERPRETER' : 'DECOMPILED';
+        const family = settings.unit === 'MIDIFEX' ? 'MIDIFEX' : 'MIDIVERB_II';
+        workletNode.port.postMessage({ type: 'setUnit', engine, family });
 
         workletNode.port.postMessage({ type: 'setProgram', program: settings.program });
         workletNode.port.postMessage({ type: 'setMix', mix: settings.mix });
@@ -268,10 +273,11 @@ export class AudioSystem {
     }
 
     // Controls
-    setUnit(unit: 'MIDIVERB_II' | 'MIDIFEX') {
+    setUnit(unit: 'MIDIVERB_I' | 'MIDIVERB_II' | 'MIDIFEX') {
         if (this.workletNode) {
-            const engine = { MIDIVERB_II: 'INTERPRETER', MIDIFEX: 'DECOMPILED' }[unit];
-            this.workletNode.port.postMessage({ type: 'setUnit', engine, family: unit });
+            const engine = unit === 'MIDIVERB_I' ? 'INTERPRETER' : 'DECOMPILED';
+            const family = unit === 'MIDIFEX' ? 'MIDIFEX' : 'MIDIVERB_II';
+            this.workletNode.port.postMessage({ type: 'setUnit', engine, family });
         }
     }
 

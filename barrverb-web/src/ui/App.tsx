@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AudioSystem } from '../audio/audio';
 import { midiverb2ProgramNames, midifexProgramNames } from '../dsp/decompiled';
+import { prog_names as midiverb1ProgramNames } from '../dsp/rom';
 import './App.css';
 
 const audioSys = new AudioSystem();
 
+export type UnitType = 'MIDIVERB_I' | 'MIDIVERB_II' | 'MIDIFEX';
+
 function App() {
     const [ready, setReady] = useState(false);
     const [error, setError] = useState('');
-    const [unit, setUnit] = useState<'MIDIVERB_II' | 'MIDIFEX'>('MIDIVERB_II');
+    const [unit, setUnit] = useState<UnitType>('MIDIVERB_I');
     const [program, setProgram] = useState(0);
     const [mix, setMix] = useState(0.5);
     const [gain, setGain] = useState(1.0);
@@ -47,10 +50,14 @@ function App() {
         audioSys.resume();
     };
 
-    const activeProgramNames = unit === 'MIDIVERB_II' ? midiverb2ProgramNames.slice(0, 64) : midifexProgramNames;
+    const activeProgramNames = (() => {
+        if (unit === 'MIDIVERB_I') return midiverb1ProgramNames.slice(0, 64);
+        if (unit === 'MIDIVERB_II') return midiverb2ProgramNames.slice(0, 100);
+        return midifexProgramNames.slice(0, 63);
+    })();
 
     const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newUnit = e.target.value as 'MIDIVERB_II' | 'MIDIFEX';
+        const newUnit = e.target.value as UnitType;
         setUnit(newUnit);
         setProgram(0);
         audioSys.setUnit(newUnit);
@@ -122,6 +129,7 @@ function App() {
 
         try {
             const exported = await audioSys.exportProcessedMp3(uploadedFile, {
+                unit,
                 program,
                 mix,
                 bypass,
@@ -180,6 +188,7 @@ function App() {
                             <div className="control-group">
                                 <label htmlFor="unit-select">Unit:</label>
                                 <select id="unit-select" value={unit} onChange={handleUnitChange}>
+                                    <option value="MIDIVERB_I">MidiVerb I</option>
                                     <option value="MIDIVERB_II">MidiVerb II</option>
                                     <option value="MIDIFEX">MidiFex</option>
                                 </select>
