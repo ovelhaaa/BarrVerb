@@ -58,15 +58,8 @@ void DisplayManager::stopBlinking() {
 }
 
 void DisplayManager::startScroll(const char* scrollText) {
-    strncpy(scrollBuffer, scrollText, sizeof(scrollBuffer) - 1);
-    scrollBuffer[sizeof(scrollBuffer) - 1] = '\0';
-    scrollLength = strlen(scrollBuffer);
-
     // Add padding spaces for smooth scroll in and out
-    char paddedBuffer[64];
-    snprintf(paddedBuffer, sizeof(paddedBuffer), "    %s    ", scrollBuffer);
-    strncpy(scrollBuffer, paddedBuffer, sizeof(scrollBuffer) - 1);
-    scrollBuffer[sizeof(scrollBuffer) - 1] = '\0';
+    snprintf(scrollBuffer, sizeof(scrollBuffer), "    %s    ", scrollText);
     scrollLength = strlen(scrollBuffer);
 
     state = State::PRE_SCROLL_BLINK;
