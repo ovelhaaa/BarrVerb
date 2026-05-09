@@ -121,8 +121,8 @@ void UIController::update() {
         display.stopBlinking();
 
         // Optional: Revert to active settings if not confirmed
-        // currentUnit = activeUnit;
-        // currentProgram = activeProgram;
-        // updateDisplayBase();
+        currentUnit = activeUnit;
+        currentProgram = activeProgram;
+        updateDisplayBase();
     }
 }
