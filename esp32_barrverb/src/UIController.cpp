@@ -15,7 +15,7 @@ void UIController::begin() {
 int UIController::getMaxProgramForUnit(Unit u) {
     if (u == Unit::MIDIVERB_I) return 63; // 64 presets (0-63)
     if (u == Unit::MIDIVERB_II) return 99; // 100 presets (0-99)
-    if (u == Unit::MIDIFEX) return 62; // 63 presets (0-62)
+    if (u == Unit::MIDIFEX) return 63; // 64 presets (0-63)
     return 0;
 }
 
