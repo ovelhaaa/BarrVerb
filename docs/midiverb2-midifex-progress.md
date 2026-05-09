@@ -341,3 +341,23 @@
 - **Resumo técnico (curto):** Adicionado seletor de unidade na interface Web com atualização automática da família de efeitos e engine subjacente (`INTERPRETER` para MidiVerb II e `DECOMPILED` para MidiFex). A lista de nomes de programas foi conectada para trocar dinamicamente dependendo da unidade selecionada.
 - **Pendências/riscos:** A seleção na web está funcional. Falta implementar comportamento equivalente para hardware embarcado (ESP32) mapeando o botão/encoder de controle.
 - **Decisão:** Unir a task de atualizar lista de presets à do seletor, pois uma interface com seletor de hardware mas mantendo as listagens incorretas dos programas da outra unidade tornaria a experiência de uso/debugging confusa. O MidiVerb II foi mantido no motor INTERPRETER por default e o MidiFex no DECOMPILED para garantir a fidelidade de MV2 enquanto o fallback atua.
+
+## 2026-05-07 (Embarcado: Controle de Unidade e Programa)
+- **Task concluída:** `- [x] Embarcado: mapear controle para troca de unidade e programa.`
+- **Arquivos alterados:**
+  - `esp32_barrverb/src/main.cpp`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** Mapeado o controle de unidade (`u`) via Serial, alternando a família (`Midiverb2` / `Midifex`) e as engines correspondentes (`Interpreter` / `Decompiled`) na inicialização e loop da ESP32. Além disso, o limite máximo de programas foi dinamicamente ajustado com base na família selecionada, garantindo comportamento semelhante à web na UI via console serial.
+- **Pendências/riscos:** Sem riscos imediatos identificados. A integração no firmware foi bem sucedida.
+- **Decisão:** Reutilizada a lógica do adaptador `Decompiled` recém-implementado na engine esp32_barrverb durante o roteamento (`MidiFex`), e clamp seguro do programa atual com base na variação máxima respectiva.
+
+## 2026-05-07 (Embarcado: Correção de Limites de Programa)
+- **Task concluída:** Correção/Follow-up de `- [x] Embarcado: mapear controle para troca de unidade e programa.`
+- **Arquivos alterados:**
+  - `esp32_barrverb/src/main.cpp`
+  - `esp32_barrverb/src/BarrVerb.cpp`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** Ajustado o limite máximo para programas da MidiFex de 62 para 63 na interface Serial e atualizado o limite de clamp de entrada na engine subjacente (`BarrVerb::setProgram()`) para suportar corretamente 99 (`MidiVerb2`) ou 63 (`MidiFex`), em vez do antigo hardcode truncado em 63 para todos os casos.
+- **Pendências/riscos:** Sem riscos imediatos identificados. Evita problemas de programas fantasmas ao selecionar além do limite.
+- **Decisão:** Aumentar o suporte no clamp `BarrVerb::setProgram` dependendo de `family`, alinhando os índices entre os limites da unidade externa e da lógica de processamento interna.

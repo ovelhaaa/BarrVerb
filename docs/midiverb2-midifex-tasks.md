@@ -39,7 +39,7 @@
 
 - [x] Web: adicionar seletor de unidade (MidiVerb II / MidiFex).
 - [x] Web: atualizar lista de presets dinamicamente por unidade.
-- [ ] Embarcado: mapear controle para troca de unidade e programa.
+- [x] Embarcado: mapear controle para troca de unidade e programa.
 - [ ] Exibir nome de preset ativo em logs/UI quando disponível.
 
 ## Epic 6 — Compliance, documentação e third_party

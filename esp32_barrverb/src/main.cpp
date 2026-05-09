@@ -143,6 +143,7 @@ void setup() {
     Serial.println("Program: 0");
     Serial.println(reverb.getProgramName(0));
     Serial.println("Commands:");
+    Serial.println("  u     : Change Unit (MidiVerb II / MidiFex)");
     Serial.println("  + / - : Change Program");
     Serial.println("  s     : Change Input Source");
     Serial.println("  r     : Change Mod Routing");
@@ -203,17 +204,38 @@ void loop() {
         char c = Serial.read();
         static int prog = 0;
         static int src = 1;
+        static bool isMidifex = false;
 
-        if (c == '+') {
-            prog++;
-            if (prog > 63) prog = 0;
+        int maxProg = isMidifex ? 63 : 99;
+
+        if (c == 'u') {
+            isMidifex = !isMidifex;
+            if (isMidifex) {
+                reverb.setEngine(BarrVerb::EngineType::Decompiled);
+                reverb.setFamily(BarrVerb::EffectFamily::Midifex);
+                maxProg = 63;
+                Serial.println("Unit changed to: MidiFex");
+            } else {
+                reverb.setEngine(BarrVerb::EngineType::Interpreter);
+                reverb.setFamily(BarrVerb::EffectFamily::Midiverb2);
+                maxProg = 99;
+                Serial.println("Unit changed to: MidiVerb II");
+            }
+            if (prog > maxProg) {
+                prog = maxProg;
+            }
             reverb.setProgram(prog);
-            Serial.printf("Program: %d - %s\n", prog, reverb.getProgramName(prog));
+            Serial.printf("Program: %02d - %s\n", prog, reverb.getProgramName(prog));
+        } else if (c == '+') {
+            prog++;
+            if (prog > maxProg) prog = 0;
+            reverb.setProgram(prog);
+            Serial.printf("Program: %02d - %s\n", prog, reverb.getProgramName(prog));
         } else if (c == '-') {
             prog--;
-            if (prog < 0) prog = 63;
+            if (prog < 0) prog = maxProg;
             reverb.setProgram(prog);
-            Serial.printf("Program: %d - %s\n", prog, reverb.getProgramName(prog));
+            Serial.printf("Program: %02d - %s\n", prog, reverb.getProgramName(prog));
         } else if (c == 's') {
             src++;
             if (src > 3) src = 0;
