@@ -268,10 +268,11 @@ export class AudioSystem {
     }
 
     // Controls
-    setUnit(unit: 'MIDIVERB_II' | 'MIDIFEX') {
+    setUnit(unit: 'MIDIVERB_I' | 'MIDIVERB_II' | 'MIDIFEX') {
         if (this.workletNode) {
-            const engine = { MIDIVERB_II: 'INTERPRETER', MIDIFEX: 'DECOMPILED' }[unit];
-            this.workletNode.port.postMessage({ type: 'setUnit', engine, family: unit });
+            const engine = unit === 'MIDIVERB_I' ? 'INTERPRETER' : 'DECOMPILED';
+            const family = unit === 'MIDIFEX' ? 'MIDIFEX' : 'MIDIVERB_II';
+            this.workletNode.port.postMessage({ type: 'setUnit', engine, family });
         }
     }
 
