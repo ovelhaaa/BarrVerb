@@ -1,3 +1,4 @@
+import { midifexGeneratedEffects } from "./midifexGenerated";
 import type {
   DecompiledCStyleEffect,
   DecompiledEffectRunner,
@@ -43,7 +44,12 @@ const midifexPassthrough: MidifexCStyleEffect = (input, output) => {
 const midifexFallbackRunner: DecompiledEffectRunner = adaptMidifexEffect(midifexPassthrough);
 
 const createMidifexDispatchTable = (): DecompiledEffectRunner[] => {
-  return new Array<DecompiledEffectRunner>(midifexProgramNames.length).fill(midifexFallbackRunner);
+  const table: DecompiledEffectRunner[] = [];
+  for (let i = 0; i < midifexProgramNames.length; i++) {
+    const generated = midifexGeneratedEffects[i];
+    table.push(generated ? adaptMidifexEffect(generated) : midifexFallbackRunner);
+  }
+  return table;
 };
 
 export const midifexRegistry: DecompiledFamilyRegistry = {
