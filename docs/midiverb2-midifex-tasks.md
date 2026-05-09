@@ -44,7 +44,7 @@
 
 ## Epic 6 — Compliance, documentação e third_party
 
-- [ ] Criar/validar diretório `third_party/midiverb_emulator/` contendo:
+- [x] Criar/validar diretório `third_party/midiverb_emulator/` contendo:
   - `decompiled-midiverb2.h`
   - `decompiled-midifex.h`
   - `names-midiverb2.h`

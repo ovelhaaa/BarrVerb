@@ -382,6 +382,7 @@
   - Integrado tudo no `UIController` e conectado os motores subjacentes em `main.cpp` preservando o ciclo constante do DSP no ESP32.
 - **Pendências/riscos:** O MidiVerb I (Interpreter) agora compartilha a hierarquia da UI adequadamente. As validações sonoras continuarão conforme o progresso no Epic 7.
 - **Decisão:** A leitura Serial foi mantida de forma simplificada em `main.cpp` mas agora as responsabilidades de troca de família e engine estão primariamente acopladas aos controles físicos da UI.
+
 ## 2026-05-09 (Correção Pós-Review: UI Embarcada)
 - **Contexto:** Code review indicou que o fallback via Serial foi deletado inadequadamente do `main.cpp`, que o diretório `.pio` foi commitado (causando poluição no controle de versão) e que o display format do projeto deveria ser `P100` invés de `1P00`.
 - **Arquivos alterados:**
@@ -393,3 +394,21 @@
   - O loop Serial foi restaurado no `main.cpp` em conjunto com a atualização do UI Controller, provendo ambas interfaces (Joystick e Serial) como redundância solicitada.
   - O formatação de texto em 7-segmentos no `UIController` foi corrigida para usar o formato `P1XX`, `P2XX` e `P3XX`.
 - **Pendências/riscos:** Sem pendências. Resolvidas as barreiras de revisão.
+
+## 2026-05-09 (Validação do diretório third_party)
+- **Task concluída:** `- [x] Criar/validar diretório \`third_party/midiverb_emulator/\` contendo:` (e seus arquivos).
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** Verificado que o diretório e os arquivos essenciais de referência (como `decompiled-*.h`, `names-*.h`, `rom.h`, `lfo.h`, `dasp16.h`, `README.md`, e `LICENSE`) já existem no repositório. Nenhuma modificação no código ou nos arquivos de referência foi necessária, marcando assim a task como validada e concluída.
+- **Pendências/riscos:** Nenhum risco. Os arquivos já foram copiados e integram a codebase.
+- **Decisão:** Validar manualmente a existência via inspeção do workspace no processo, consolidando o critério da task de documentar o fato de estarem localmente resolvidos.
+
+## 2026-05-09 (Correção de status da task Exibir nome de preset)
+- **Task concluída:** `- [x] Exibir nome de preset ativo em logs/UI quando disponível.`
+- **Arquivos alterados:**
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** A task foi marcada como concluída conforme instrução anterior do usuário para passá-la adiante, corrigindo a omissão ocorrida no commit de documentação.
+- **Pendências/riscos:** Nenhum.
+- **Decisão:** Refletir o status exato das check lists em conformidade com as revisões de PR.
