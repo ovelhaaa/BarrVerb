@@ -2,21 +2,36 @@
 #include <driver/i2s.h>
 #include "BarrVerb.h"
 #include "ModulationWrapper.h"
+#include "DisplayManager.h"
+#include "Joystick.h"
+#include "UIController.h"
 
 // I2S Configuration
 #define I2S_NUM         I2S_NUM_0
 #define I2S_SAMPLE_RATE 44100
 #define I2S_BUFF_SIZE   128  // Frames per buffer
 
-// Lolin32 Lite + PCM5102 I2S Pins
-// These are the pins confirmed for the Lolin32 Lite board
 #define I2S_BCLK_PIN    26  // Bit Clock
 #define I2S_LRCK_PIN    25  // Word Select / Left-Right Clock
 #define I2S_DOUT_PIN    22  // Data Out
 #define I2S_DIN_PIN     35  // Data In (Not used for DAC output, input-only pin on ESP32)
 
+// UI Pins
+#define TM1637_CLK_PIN  16
+#define TM1637_DIO_PIN  17
+
+#define JOY_UP_PIN      13
+#define JOY_DOWN_PIN    12
+#define JOY_LEFT_PIN    14
+#define JOY_RIGHT_PIN   27
+#define JOY_CENTER_PIN  33
+
 BarrVerb reverb;
 ModulationWrapper* modWrapper = nullptr;
+
+DisplayManager display(TM1637_CLK_PIN, TM1637_DIO_PIN);
+Joystick joystick(JOY_UP_PIN, JOY_DOWN_PIN, JOY_LEFT_PIN, JOY_RIGHT_PIN, JOY_CENTER_PIN);
+UIController ui(display, joystick, reverb);
 
 int16_t inputBuffer[I2S_BUFF_SIZE * 2];
 int16_t reverbBuffer[I2S_BUFF_SIZE * 2];
@@ -52,7 +67,7 @@ void setupI2S() {
         .sample_rate = I2S_SAMPLE_RATE,
         .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
         .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-        .communication_format = I2S_COMM_FORMAT_I2S_MSB,
+        .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_STAND_I2S),
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
         .dma_buf_count = 8,
         .dma_buf_len = I2S_BUFF_SIZE,
@@ -82,7 +97,6 @@ void generateSignal(int16_t *buffer, uint32_t frames) {
                 sample = 0;
                 break;
             case SRC_IMPULSE:
-                // Trigger impulse every ~1 sec (44100 samples)
                 if (impulseTimer == 0) {
                     sample = 32000;
                     impulseTimer = 44100;
@@ -92,7 +106,6 @@ void generateSignal(int16_t *buffer, uint32_t frames) {
                 }
                 break;
             case SRC_SAWTOOTH:
-                // Simple saw
                 sample = (int16_t)(phase & 0xFFFF) - 32768;
                 phase += 200; // Pitch control
                 break;
@@ -102,7 +115,6 @@ void generateSignal(int16_t *buffer, uint32_t frames) {
                  break;
         }
 
-        // Write to stereo buffer
         buffer[i * 2] = sample;
         buffer[i * 2 + 1] = sample;
     }
@@ -131,18 +143,19 @@ void applyModulation(int16_t* inBuf, int16_t* outBuf, uint32_t frames) {
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("BarrVerb ESP32 Starting...");
+    Serial.println("BarrVerb ESP32 Starting with UI...");
 
     setupI2S();
 
     reverb.setSampleRate(I2S_SAMPLE_RATE);
-    reverb.setProgram(0); // Start with first program
+
+    // UI controller handles initial program setting
+    ui.begin();
 
     modWrapper = new ModulationWrapper(I2S_SAMPLE_RATE);
 
-    Serial.println("Program: 0");
-    Serial.println(reverb.getProgramName(0));
-    Serial.println("Commands:");
+    Serial.println("Hardware UI Active");
+    Serial.println("Serial Commands fallback:");
     Serial.println("  u     : Change Unit (MidiVerb II / MidiFex)");
     Serial.println("  + / - : Change Program");
     Serial.println("  s     : Change Input Source");
@@ -160,46 +173,38 @@ void loop() {
 
     // 2. Process Audio Graph based on Routing
     if (currentRouting == ROUTE_WET_POST) {
-        // Dry -> Reverb -> Mod -> Output
         reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
         applyModulation(reverbBuffer, modBuffer, I2S_BUFF_SIZE);
-
         for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
             outputBuffer[i] = clamp16((inputBuffer[i] + modBuffer[i]) / 2);
         }
     } else if (currentRouting == ROUTE_WET_PRE) {
-        // Dry -> Mod -> Reverb -> Output
         applyModulation(inputBuffer, modBuffer, I2S_BUFF_SIZE);
         reverb.run(modBuffer, reverbBuffer, I2S_BUFF_SIZE);
-
         for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
-            // Mix original dry with reverb (which has modulated input)
             outputBuffer[i] = clamp16((inputBuffer[i] + reverbBuffer[i]) / 2);
         }
     } else if (currentRouting == ROUTE_DRY) {
-        // Dry -> Mod -> Output (Dry)  AND  Dry -> Reverb -> Output (Wet)
         reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
         applyModulation(inputBuffer, modBuffer, I2S_BUFF_SIZE);
-
         for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
-            // Mix modulated dry with unmodulated reverb
             outputBuffer[i] = clamp16((modBuffer[i] + reverbBuffer[i]) / 2);
         }
     } else if (currentRouting == ROUTE_MIX) {
-        // Dry -> Reverb -> Mix -> Mod -> Output
         reverb.run(inputBuffer, reverbBuffer, I2S_BUFF_SIZE);
-
         for (uint32_t i = 0; i < I2S_BUFF_SIZE * 2; i++) {
             modBuffer[i] = clamp16((inputBuffer[i] + reverbBuffer[i]) / 2);
         }
-
         applyModulation(modBuffer, outputBuffer, I2S_BUFF_SIZE);
     }
 
     // 3. Output to I2S
     i2s_write(I2S_NUM, outputBuffer, sizeof(outputBuffer), &bytes_written, portMAX_DELAY);
 
-    // Simple Serial control to change programs
+    // 4. Update UI
+    ui.update();
+
+    // Fallback simple serial
     if (Serial.available()) {
         char c = Serial.read();
         static int prog = 0;

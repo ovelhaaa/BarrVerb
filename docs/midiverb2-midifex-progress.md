@@ -361,3 +361,35 @@
 - **Resumo técnico (curto):** Ajustado o limite máximo para programas da MidiFex de 62 para 63 na interface Serial e atualizado o limite de clamp de entrada na engine subjacente (`BarrVerb::setProgram()`) para suportar corretamente 99 (`MidiVerb2`) ou 63 (`MidiFex`), em vez do antigo hardcode truncado em 63 para todos os casos.
 - **Pendências/riscos:** Sem riscos imediatos identificados. Evita problemas de programas fantasmas ao selecionar além do limite.
 - **Decisão:** Aumentar o suporte no clamp `BarrVerb::setProgram` dependendo de `family`, alinhando os índices entre os limites da unidade externa e da lógica de processamento interna.
+
+## 2026-05-09 (UI Embarcada: Display TM1637 e Joystick)
+- **Contexto:** Adicionado suporte a uma interface embarcada física com display de 7 segmentos de 4 dígitos e controle via direcional estilo joystick para seleção amigável entre MidiVerb I, MidiVerb II e MidiFex e seus respectivos presets de áudio.
+- **Arquivos alterados:**
+  - `esp32_barrverb/platformio.ini`
+  - `esp32_barrverb/include/TM1637Chars.h`
+  - `esp32_barrverb/include/DisplayManager.h`
+  - `esp32_barrverb/src/DisplayManager.cpp`
+  - `esp32_barrverb/include/Joystick.h`
+  - `esp32_barrverb/src/Joystick.cpp`
+  - `esp32_barrverb/include/UIController.h`
+  - `esp32_barrverb/src/UIController.cpp`
+  - `esp32_barrverb/src/main.cpp`
+- **Resumo técnico:**
+  - Adicionada dependência da biblioteca `smougenot/TM1637`.
+  - Criado utilitário `TM1637Chars` com tabela ASCII de caracteres aproximados para 7-segmentos.
+  - Implementado `DisplayManager` com rotinas não-bloqueantes para mostrar as opções e rolar (scroll) os nomes dos presets após 3 piscadas rápidas.
+  - Implementado leitor `Joystick` com resistores de pull-up e debouncing para navegação via eventos (Esquerda/Direita para unidades, Cima/Baixo para presets, Centro para confirmar).
+  - Integrado tudo no `UIController` e conectado os motores subjacentes em `main.cpp` preservando o ciclo constante do DSP no ESP32.
+- **Pendências/riscos:** O MidiVerb I (Interpreter) agora compartilha a hierarquia da UI adequadamente. As validações sonoras continuarão conforme o progresso no Epic 7.
+- **Decisão:** A leitura Serial foi mantida de forma simplificada em `main.cpp` mas agora as responsabilidades de troca de família e engine estão primariamente acopladas aos controles físicos da UI.
+## 2026-05-09 (Correção Pós-Review: UI Embarcada)
+- **Contexto:** Code review indicou que o fallback via Serial foi deletado inadequadamente do `main.cpp`, que o diretório `.pio` foi commitado (causando poluição no controle de versão) e que o display format do projeto deveria ser `P100` invés de `1P00`.
+- **Arquivos alterados:**
+  - `esp32_barrverb/.gitignore`
+  - `esp32_barrverb/src/main.cpp`
+  - `esp32_barrverb/src/UIController.cpp`
+- **Resumo técnico:**
+  - Adicionado `esp32_barrverb/.gitignore` para excluir explicitamente o cache de dependências e build do PlatformIO (`.pio`).
+  - O loop Serial foi restaurado no `main.cpp` em conjunto com a atualização do UI Controller, provendo ambas interfaces (Joystick e Serial) como redundância solicitada.
+  - O formatação de texto em 7-segmentos no `UIController` foi corrigida para usar o formato `P1XX`, `P2XX` e `P3XX`.
+- **Pendências/riscos:** Sem pendências. Resolvidas as barreiras de revisão.
