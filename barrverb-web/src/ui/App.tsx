@@ -129,6 +129,7 @@ function App() {
 
         try {
             const exported = await audioSys.exportProcessedMp3(uploadedFile, {
+                unit,
                 program,
                 mix,
                 bypass,
