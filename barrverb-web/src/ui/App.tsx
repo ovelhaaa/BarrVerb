@@ -8,6 +8,10 @@ const audioSys = new AudioSystem();
 
 export type UnitType = 'MIDIVERB_I' | 'MIDIVERB_II' | 'MIDIFEX';
 
+function getDefaultProgramForUnit(unit: UnitType): number {
+    return unit === 'MIDIVERB_I' ? 0 : 1;
+}
+
 function App() {
     const [ready, setReady] = useState(false);
     const [error, setError] = useState('');
@@ -58,10 +62,11 @@ function App() {
 
     const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newUnit = e.target.value as UnitType;
+        const defaultProgram = getDefaultProgramForUnit(newUnit);
         setUnit(newUnit);
-        setProgram(0);
+        setProgram(defaultProgram);
         audioSys.setUnit(newUnit);
-        audioSys.setProgram(0);
+        audioSys.setProgram(defaultProgram);
     };
 
     const handleProgramChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
