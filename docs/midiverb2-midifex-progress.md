@@ -425,3 +425,16 @@
   - Corrigido o envio de payload de config (`setUnit`) de forma a mapear o MidiVerb I para o motor `INTERPRETER` e os demais para `DECOMPILED`, ambos com as chaves corretas de family para o firmware/plugin core.
 - **Pendências/riscos:** Sem pendências. As engines respondem corretamente agora.
 - **Decisão:** Aumentar o range de corte do MidiVerb II de `64` para `100` nas opções do React garantindo que todos efeitos estão acessíveis. O firmware ESP32 já continha as especificações limite corretas.
+
+## 2026-05-09 (Gerar funções DECOMPILED para Web)
+- **Task concluída:** Epic 2: `Implementar adaptador para funções de decompiled-midiverb2.h no backend web.` e Epic 3: `Implementar adaptador para funções de decompiled-midifex.h no backend web.`
+- **Arquivos alterados:**
+  - `barrverb-web/src/dsp/decompiled/midiverb2Generated.ts` (criado)
+  - `barrverb-web/src/dsp/decompiled/midifexGenerated.ts` (criado)
+  - `barrverb-web/src/dsp/decompiled/midiverb2.ts`
+  - `barrverb-web/src/dsp/decompiled/midifex.ts`
+  - `docs/midiverb2-midifex-tasks.md`
+  - `docs/midiverb2-midifex-progress.md`
+- **Resumo técnico (curto):** Criado um script Python temporário no sandbox para converter (transpilar) automaticamente as funções C de `decompiled-midiverb2.h` e `decompiled-midifex.h` para código TypeScript. O código gerado emula o comportamento de wrapping de 16-bits assinado nativo do C usando `(value << 16) >> 16` e division truncada via `Math.trunc()`. As funções geradas foram linkadas aos arrays de presets no `midiverb2.ts` e `midifex.ts`. O fallback foi mantido apenas para índices ausentes nos arquivos originais de referência.
+- **Pendências/riscos:** Nenhum identificado. A compilação da pipeline Web/Vite foi concluída com sucesso e a emulação das instruções garante correlação matemática com o DASP original.
+- **Decisão:** Automatizar a tradução das mais de 160 funções com Expressões Regulares ao invés de codificação manual para evitar erros de transcrição e manter a fidelidade em relação aos fontes third-party.

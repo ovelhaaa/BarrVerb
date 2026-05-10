@@ -67,7 +67,7 @@
 ## Critérios de pronto (Definition of Done)
 
 - [ ] Seleção de engine/família/programa funcional em Web e embarcado.
-- [ ] MidiVerb II e MidiFex executando no backend `DECOMPILED`.
+- [x] MidiVerb II e MidiFex executando no backend `DECOMPILED`.
 - [ ] Presets nomeados corretamente com base em `names-midiverb2.h` e `names-midifex.h`.
 - [ ] Licenças e origem dos arquivos third_party documentadas.
 - [ ] Testes de regressão verdes para os presets definidos nesta checklist e/ou baseline de referência do projeto.
