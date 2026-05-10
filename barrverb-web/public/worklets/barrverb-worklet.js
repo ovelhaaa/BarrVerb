@@ -2971,12 +2971,10 @@ var midifexPassthrough = (input, output) => {
 };
 var midifexFallbackRunner = adaptMidifexEffect(midifexPassthrough);
 var createMidifexDispatchTable = () => {
-  const table = [];
-  for (let i = 0; i < midifexProgramNames.length; i++) {
+  return Array.from({ length: midifexProgramNames.length }).map((_, i) => {
     const generated = midifexGeneratedEffects[i];
-    table.push(generated ? adaptMidifexEffect(generated) : midifexFallbackRunner);
-  }
-  return table;
+    return generated ? adaptMidifexEffect(generated) : midifexFallbackRunner;
+  });
 };
 var midifexRegistry = {
   family: "MIDIFEX",
@@ -11313,15 +11311,11 @@ var midiverb2Effect0Defeat = (_input, out, dram, pointer, _lfo1Value, _lfo2Value
 var midiverb2Registry = {
   family: "MIDIVERB_II",
   programs: (() => {
-    const table = [];
-    for (let i = 0; i < midiverb2ProgramNames.length; i++) {
-      if (i === 0) {
-        table.push(adaptMidiverb2Effect(midiverb2Effect0Defeat));
-      } else {
-        const generated = midiverb2GeneratedEffects[i];
-        table.push(generated ? adaptMidiverb2Effect(generated) : midiverb2FallbackRunner);
-      }
-    }
+    const table = Array.from({ length: midiverb2ProgramNames.length }).map((_, i) => {
+      const generated = midiverb2GeneratedEffects[i];
+      return generated ? adaptMidiverb2Effect(generated) : midiverb2FallbackRunner;
+    });
+    table[0] = adaptMidiverb2Effect(midiverb2Effect0Defeat);
     return table;
   })(),
   programNames: midiverb2ProgramNames,

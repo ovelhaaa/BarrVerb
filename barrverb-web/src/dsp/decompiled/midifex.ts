@@ -44,12 +44,10 @@ const midifexPassthrough: MidifexCStyleEffect = (input, output) => {
 const midifexFallbackRunner: DecompiledEffectRunner = adaptMidifexEffect(midifexPassthrough);
 
 const createMidifexDispatchTable = (): DecompiledEffectRunner[] => {
-  const table: DecompiledEffectRunner[] = [];
-  for (let i = 0; i < midifexProgramNames.length; i++) {
+  return Array.from({ length: midifexProgramNames.length }).map((_, i) => {
     const generated = midifexGeneratedEffects[i];
-    table.push(generated ? adaptMidifexEffect(generated) : midifexFallbackRunner);
-  }
-  return table;
+    return generated ? adaptMidifexEffect(generated) : midifexFallbackRunner;
+  });
 };
 
 export const midifexRegistry: DecompiledFamilyRegistry = {

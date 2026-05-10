@@ -61,15 +61,11 @@ const midiverb2Effect0Defeat: Midiverb2CStyleEffect = (
 export const midiverb2Registry: DecompiledFamilyRegistry = {
   family: "MIDIVERB_II",
   programs: (() => {
-    const table: DecompiledEffectRunner[] = [];
-    for (let i = 0; i < midiverb2ProgramNames.length; i++) {
-        if (i === 0) {
-            table.push(adaptMidiverb2Effect(midiverb2Effect0Defeat));
-        } else {
-            const generated = midiverb2GeneratedEffects[i];
-            table.push(generated ? adaptMidiverb2Effect(generated) : midiverb2FallbackRunner);
-        }
-    }
+    const table = Array.from({ length: midiverb2ProgramNames.length }).map((_, i) => {
+      const generated = midiverb2GeneratedEffects[i];
+      return generated ? adaptMidiverb2Effect(generated) : midiverb2FallbackRunner;
+    });
+    table[0] = adaptMidiverb2Effect(midiverb2Effect0Defeat);
     return table;
   })(),
   programNames: midiverb2ProgramNames,
