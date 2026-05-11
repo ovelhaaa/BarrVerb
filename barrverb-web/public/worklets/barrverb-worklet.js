@@ -20003,13 +20003,19 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
   bypass = false;
   wetMix = 0.5;
   outputGain = 1;
+  inputGain = 0.35;
+  smoothedInputGain = 0.35;
   wetL;
   wetR;
+  inputLBuffer;
+  inputRBuffer;
   constructor() {
     super();
     this.reverb = new BarrVerb();
     this.wetL = new Float32Array(128);
     this.wetR = new Float32Array(128);
+    this.inputLBuffer = new Float32Array(128);
+    this.inputRBuffer = new Float32Array(128);
     this.reverb.setSampleRate(sampleRate);
     this.reverb.setProgram(rom, 0);
     this.mod = new ModulationWrapper(sampleRate);
@@ -20023,6 +20029,8 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
         this.bypass = data.bypass;
       } else if (data.type === "setGain") {
         this.outputGain = data.gain;
+      } else if (data.type === "setInputGain") {
+        this.inputGain = Math.min(1, Math.max(0.1, data.inputGain));
       } else if (data.type === "setModulation") {
         this.mod.setParameters(data.modType, data.modRate, data.modDepth, data.modMix, data.modFeedback);
       } else if (data.type === "setUnit") {
@@ -20039,16 +20047,19 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     }
     const inputL = input[0];
     if (!inputL) return true;
-    const inputR = input.length > 1 && input[1] ? input[1] : inputL;
+    const rawInputR = input.length > 1 && input[1] ? input[1] : void 0;
+    const inputR = rawInputR ?? inputL;
     const outputL = output[0];
     if (!outputL) return true;
     const outputR = output.length > 1 && output[1] ? output[1] : outputL;
     const frames = inputL.length;
     if (this.bypass) {
       for (let i = 0; i < frames; i++) {
+        const targetInputGain = this.inputGain;
+        this.smoothedInputGain += (targetInputGain - this.smoothedInputGain) * 0.05;
         outputL[i] = inputL[i] * this.outputGain;
         if (output.length > 1) {
-          outputR[i] = inputR[i] * this.outputGain;
+          outputR[i] = (rawInputR ? rawInputR[i] : inputL[i]) * this.outputGain;
         }
       }
       return true;
@@ -20056,15 +20067,26 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     if (this.wetL.length < frames) {
       this.wetL = new Float32Array(frames);
       this.wetR = new Float32Array(frames);
+      this.inputLBuffer = new Float32Array(frames);
+      this.inputRBuffer = new Float32Array(frames);
     }
-    this.reverb.process(inputL, inputR, this.wetL, this.wetR);
+    const preL = this.inputLBuffer;
+    const preR = this.inputRBuffer;
+    for (let i = 0; i < frames; i++) {
+      const targetInputGain = this.inputGain;
+      const inGain = this.smoothedInputGain + (targetInputGain - this.smoothedInputGain) * 0.05;
+      this.smoothedInputGain = inGain;
+      preL[i] = inputL[i] * inGain;
+      preR[i] = inputR[i] * inGain;
+    }
+    this.reverb.process(preL, preR, this.wetL, this.wetR);
     const dryLevel = 1 - this.wetMix;
     const wetLevel = this.wetMix;
     for (let i = 0; i < frames; i++) {
       const [modL, modR] = this.mod.process(this.wetL[i], this.wetR[i]);
-      outputL[i] = (inputL[i] * dryLevel + modL * wetLevel) * this.outputGain;
+      outputL[i] = (preL[i] * dryLevel + modL * wetLevel) * this.outputGain;
       if (output.length > 1) {
-        outputR[i] = (inputR[i] * dryLevel + modR * wetLevel) * this.outputGain;
+        outputR[i] = (preR[i] * dryLevel + modR * wetLevel) * this.outputGain;
       }
     }
     return true;
