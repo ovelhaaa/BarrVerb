@@ -83,9 +83,11 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
             for (let i = 0; i < frames; i++) {
                 const targetInputGain = this.inputGain;
                 this.smoothedInputGain += (targetInputGain - this.smoothedInputGain) * 0.05;
-                outputL[i] = inputL[i] * this.outputGain;
+                const bypassL = inputL[i] * this.outputGain;
+                outputL[i] = Number.isFinite(bypassL) ? Math.max(-1, Math.min(1, bypassL)) : 0;
                 if (output.length > 1) {
-                    outputR[i] = inputR[i] * this.outputGain;
+                    const bypassR = inputR[i] * this.outputGain;
+                    outputR[i] = Number.isFinite(bypassR) ? Math.max(-1, Math.min(1, bypassR)) : 0;
                 }
             }
             return true;
@@ -122,10 +124,15 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
             const [modL, modR] = this.mod.process(this.wetL[i], this.wetR[i]);
 
             // Mix Dry + Modulated Wet
-            outputL[i] = ((preL[i] * dryLevel) + (modL * wetLevel)) * this.outputGain;
+            const mixedL = ((preL[i] * dryLevel) + (modL * wetLevel)) * this.outputGain;
+            const mixedR = ((preR[i] * dryLevel) + (modR * wetLevel)) * this.outputGain;
+
+            // Defensive sanitation: avoid NaN/Inf propagating to the output analyser
+            // (which can pin the UI meter) and keep signal in WebAudio range.
+            outputL[i] = Number.isFinite(mixedL) ? Math.max(-1, Math.min(1, mixedL)) : 0;
 
             if (output.length > 1) {
-                outputR[i] = ((preR[i] * dryLevel) + (modR * wetLevel)) * this.outputGain;
+                outputR[i] = Number.isFinite(mixedR) ? Math.max(-1, Math.min(1, mixedR)) : 0;
             }
         }
 

@@ -20030,7 +20030,7 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
       } else if (data.type === "setGain") {
         this.outputGain = data.gain;
       } else if (data.type === "setInputGain") {
-        this.inputGain = Math.min(1, Math.max(0, data.inputGain));
+        this.inputGain = Math.min(2, Math.max(0, data.inputGain));
       } else if (data.type === "setModulation") {
         this.mod.setParameters(data.modType, data.modRate, data.modDepth, data.modMix, data.modFeedback);
       } else if (data.type === "setUnit") {
@@ -20055,11 +20055,13 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     const frames = inputL.length;
     if (this.bypass) {
       for (let i = 0; i < frames; i++) {
-        const targetInputGain = this.inputGain;
-        this.smoothedInputGain += (targetInputGain - this.smoothedInputGain) * 0.05;
-        outputL[i] = inputL[i] * this.outputGain;
+        const targetInputGain2 = this.inputGain;
+        this.smoothedInputGain += (targetInputGain2 - this.smoothedInputGain) * 0.05;
+        const bypassL = inputL[i] * this.outputGain;
+        outputL[i] = Number.isFinite(bypassL) ? Math.max(-1, Math.min(1, bypassL)) : 0;
         if (output.length > 1) {
-          outputR[i] = (rawInputR ? rawInputR[i] : inputL[i]) * this.outputGain;
+          const bypassR = inputR[i] * this.outputGain;
+          outputR[i] = Number.isFinite(bypassR) ? Math.max(-1, Math.min(1, bypassR)) : 0;
         }
       }
       return true;
@@ -20072,23 +20074,23 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     }
     const preL = this.inputLBuffer;
     const preR = this.inputRBuffer;
-    const preL = this.inputLBuffer;
-    const preR = this.inputRBuffer;
     const targetInputGain = this.inputGain;
-    for (let i = 0; i < frames; i++) {
-      const inGain = this.smoothedInputGain + (targetInputGain - this.smoothedInputGain) * 0.05;
-      this.smoothedInputGain = inGain;
-      preL[i] = inputL[i] * inGain;
-      preR[i] = inputR[i] * inGain;
-    }
+    const gains = new Float32Array(frames).map(() => {
+      this.smoothedInputGain += (targetInputGain - this.smoothedInputGain) * 0.05;
+      return this.smoothedInputGain;
+    });
+    preL.set(inputL.map((v, i) => v * gains[i]));
+    preR.set(inputR.map((v, i) => v * gains[i]));
     this.reverb.process(preL, preR, this.wetL, this.wetR);
     const dryLevel = 1 - this.wetMix;
     const wetLevel = this.wetMix;
     for (let i = 0; i < frames; i++) {
       const [modL, modR] = this.mod.process(this.wetL[i], this.wetR[i]);
-      outputL[i] = (preL[i] * dryLevel + modL * wetLevel) * this.outputGain;
+      const mixedL = (preL[i] * dryLevel + modL * wetLevel) * this.outputGain;
+      const mixedR = (preR[i] * dryLevel + modR * wetLevel) * this.outputGain;
+      outputL[i] = Number.isFinite(mixedL) ? Math.max(-1, Math.min(1, mixedL)) : 0;
       if (output.length > 1) {
-        outputR[i] = (preR[i] * dryLevel + modR * wetLevel) * this.outputGain;
+        outputR[i] = Number.isFinite(mixedR) ? Math.max(-1, Math.min(1, mixedR)) : 0;
       }
     }
     return true;

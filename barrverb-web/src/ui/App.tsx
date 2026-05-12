@@ -54,6 +54,14 @@ function App() {
         await audioSys.initialize();
         audioSys.setInputGain(inputGain);
         audioSys.resume();
+
+        // Sync all UI defaults to DSP on first init to avoid stale worklet state.
+        audioSys.setUnit(unit);
+        audioSys.setProgram(program);
+        audioSys.setMix(mix);
+        audioSys.setGain(gain);
+        audioSys.setBypass(bypass);
+        audioSys.setModulation(modType, modRate, modDepth, modMix, modFeedback);
     };
 
     const activeProgramNames = (() => {
