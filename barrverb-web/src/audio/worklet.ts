@@ -102,13 +102,13 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
         const preL = this.inputLBuffer;
         const preR = this.inputRBuffer;
 
-        for (let i = 0; i < frames; i++) {
-            const targetInputGain = this.inputGain;
-            const inGain = this.smoothedInputGain + (targetInputGain - this.smoothedInputGain) * 0.05;
-            this.smoothedInputGain = inGain;
-            preL[i] = inputL[i] * inGain;
-            preR[i] = inputR[i] * inGain;
-        }
+        const targetInputGain = this.inputGain;
+        const gains = new Float32Array(frames).map(() => {
+            this.smoothedInputGain += (targetInputGain - this.smoothedInputGain) * 0.05;
+            return this.smoothedInputGain;
+        });
+        preL.set(inputL.map((v, i) => v * gains[i]));
+        preR.set(inputR.map((v, i) => v * gains[i]));
 
         // --- 1. Reverb Processing ---
         this.reverb.process(preL, preR, this.wetL, this.wetR);
