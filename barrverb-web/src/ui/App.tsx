@@ -19,6 +19,7 @@ function App() {
     const [program, setProgram] = useState(0);
     const [mix, setMix] = useState(0.5);
     const [gain, setGain] = useState(1.0);
+    const [inputGain, setInputGain] = useState(0.35);
     const [bypass, setBypass] = useState(false);
 
     // Modulation State
@@ -51,6 +52,7 @@ function App() {
     const handleInit = async () => {
         setError('');
         await audioSys.initialize();
+        audioSys.setInputGain(inputGain);
         audioSys.resume();
 
         // Sync all UI defaults to DSP on first init to avoid stale worklet state.
@@ -93,6 +95,12 @@ function App() {
         const val = parseFloat(e.target.value);
         setGain(val);
         audioSys.setGain(val);
+    };
+
+    const handleInputGainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = parseFloat(e.target.value);
+        setInputGain(val);
+        audioSys.setInputGain(val);
     };
 
     const handleBypassToggle = () => {
@@ -147,6 +155,7 @@ function App() {
                 mix,
                 bypass,
                 gain,
+                inputGain,
                 modulation: {
                     type: modType,
                     rate: modRate,
@@ -229,6 +238,15 @@ function App() {
                                 type="range"
                                 min="0" max="1" step="0.01"
                                 value={mix} onChange={handleMixChange}
+                            />
+                        </div>
+
+                        <div className="control-group">
+                            <label>Input Gain: {Math.round(inputGain * 100)}% ({(20 * Math.log10(inputGain)).toFixed(1)} dB)</label>
+                            <input
+                                type="range"
+                                min="0" max="2" step="0.01"
+                                value={inputGain} onChange={handleInputGainChange}
                             />
                         </div>
 

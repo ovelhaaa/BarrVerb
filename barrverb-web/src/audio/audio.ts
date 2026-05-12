@@ -88,6 +88,7 @@ export class AudioSystem {
             mix: number;
             bypass: boolean;
             gain: number;
+            inputGain: number;
             modulation: {
                 type: number;
                 rate: number;
@@ -135,6 +136,7 @@ export class AudioSystem {
         workletNode.port.postMessage({ type: 'setMix', mix: settings.mix });
         workletNode.port.postMessage({ type: 'setBypass', bypass: settings.bypass });
         workletNode.port.postMessage({ type: 'setGain', gain: settings.gain });
+        workletNode.port.postMessage({ type: 'setInputGain', inputGain: settings.inputGain });
         workletNode.port.postMessage({
             type: 'setModulation',
             modType: settings.modulation.type,
@@ -302,6 +304,12 @@ export class AudioSystem {
     setGain(gain: number) {
         if (this.workletNode) {
             this.workletNode.port.postMessage({ type: 'setGain', gain });
+        }
+    }
+
+    setInputGain(inputGain: number) {
+        if (this.workletNode) {
+            this.workletNode.port.postMessage({ type: 'setInputGain', inputGain });
         }
     }
 
