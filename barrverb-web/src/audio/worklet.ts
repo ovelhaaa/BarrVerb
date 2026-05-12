@@ -98,10 +98,15 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
             const [modL, modR] = this.mod.process(this.wetL[i], this.wetR[i]);
 
             // Mix Dry + Modulated Wet
-            outputL[i] = ((inputL[i] * dryLevel) + (modL * wetLevel)) * this.outputGain;
+            const mixedL = ((inputL[i] * dryLevel) + (modL * wetLevel)) * this.outputGain;
+            const mixedR = ((inputR[i] * dryLevel) + (modR * wetLevel)) * this.outputGain;
+
+            // Defensive sanitation: avoid NaN/Inf propagating to the output analyser
+            // (which can pin the UI meter) and keep signal in WebAudio range.
+            outputL[i] = Number.isFinite(mixedL) ? Math.max(-1, Math.min(1, mixedL)) : 0;
 
             if (output.length > 1) {
-                outputR[i] = ((inputR[i] * dryLevel) + (modR * wetLevel)) * this.outputGain;
+                outputR[i] = Number.isFinite(mixedR) ? Math.max(-1, Math.min(1, mixedR)) : 0;
             }
         }
 

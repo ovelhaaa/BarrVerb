@@ -20062,9 +20062,11 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     const wetLevel = this.wetMix;
     for (let i = 0; i < frames; i++) {
       const [modL, modR] = this.mod.process(this.wetL[i], this.wetR[i]);
-      outputL[i] = (inputL[i] * dryLevel + modL * wetLevel) * this.outputGain;
+      const mixedL = (inputL[i] * dryLevel + modL * wetLevel) * this.outputGain;
+      const mixedR = (inputR[i] * dryLevel + modR * wetLevel) * this.outputGain;
+      outputL[i] = Number.isFinite(mixedL) ? Math.max(-1, Math.min(1, mixedL)) : 0;
       if (output.length > 1) {
-        outputR[i] = (inputR[i] * dryLevel + modR * wetLevel) * this.outputGain;
+        outputR[i] = Number.isFinite(mixedR) ? Math.max(-1, Math.min(1, mixedR)) : 0;
       }
     }
     return true;
