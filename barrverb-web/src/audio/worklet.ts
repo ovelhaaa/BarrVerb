@@ -72,9 +72,11 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
         // Fast path for bypass
         if (this.bypass) {
             for (let i = 0; i < frames; i++) {
-                outputL[i] = inputL[i] * this.outputGain;
+                const bypassL = inputL[i] * this.outputGain;
+                outputL[i] = Number.isFinite(bypassL) ? Math.max(-1, Math.min(1, bypassL)) : 0;
                 if (output.length > 1) {
-                    outputR[i] = inputR[i] * this.outputGain;
+                    const bypassR = inputR[i] * this.outputGain;
+                    outputR[i] = Number.isFinite(bypassR) ? Math.max(-1, Math.min(1, bypassR)) : 0;
                 }
             }
             return true;
