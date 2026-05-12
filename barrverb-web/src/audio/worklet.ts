@@ -85,7 +85,7 @@ class BarrVerbProcessor extends AudioWorkletProcessor {
                 this.smoothedInputGain += (targetInputGain - this.smoothedInputGain) * 0.05;
                 outputL[i] = inputL[i] * this.outputGain;
                 if (output.length > 1) {
-                    outputR[i] = (rawInputR ? rawInputR[i] : inputL[i]) * this.outputGain;
+                    outputR[i] = inputR[i] * this.outputGain;
                 }
             }
             return true;
