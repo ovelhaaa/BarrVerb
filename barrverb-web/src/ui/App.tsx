@@ -237,7 +237,7 @@ function App() {
                             <label>Input Gain: {Math.round(inputGain * 100)}% ({(20 * Math.log10(inputGain)).toFixed(1)} dB)</label>
                             <input
                                 type="range"
-                                min="0.1" max="1" step="0.01"
+                                min="0" max="2" step="0.01"
                                 value={inputGain} onChange={handleInputGainChange}
                             />
                         </div>
