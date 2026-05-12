@@ -20072,10 +20072,12 @@ var BarrVerbProcessor = class extends AudioWorkletProcessor {
     }
     const preL = this.inputLBuffer;
     const preR = this.inputRBuffer;
+    const preL = this.inputLBuffer;
+    const preR = this.inputRBuffer;
+    const targetInputGain = this.inputGain;
+    const inGain = this.smoothedInputGain + (targetInputGain - this.smoothedInputGain) * 0.05;
+    this.smoothedInputGain = inGain;
     for (let i = 0; i < frames; i++) {
-      const targetInputGain = this.inputGain;
-      const inGain = this.smoothedInputGain + (targetInputGain - this.smoothedInputGain) * 0.05;
-      this.smoothedInputGain = inGain;
       preL[i] = inputL[i] * inGain;
       preR[i] = inputR[i] * inGain;
     }
